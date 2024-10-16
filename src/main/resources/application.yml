@@ -18,8 +18,9 @@ spring:
     hibernate:
       ddl-auto: update
     properties:
-      hibernate.hibernate.dialect: org.hibernate.dialect.MySQLDialect
-      hibernate.hibernate.format_sql: true
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
 
   mail:
     host: smtp.gmail.com

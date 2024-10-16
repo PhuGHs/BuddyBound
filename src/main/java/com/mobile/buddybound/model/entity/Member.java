@@ -6,8 +6,8 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "location_histories")
-public class LocationHistory {
+@Table(name = "members")
+public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -17,13 +17,14 @@ public class LocationHistory {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "latitude")
-    private double latitude;
+    @ManyToOne
+    @JoinColumn(name = "group_id")
+    private Group group;
 
-    @Column(name = "longtitude")
-    private double longitude;
+    @Column(name = "nick_name")
+    private String nickName;
 
     @CreatedDate
-    @Column(name = "createdAt")
-    private LocalDateTime createdAt;
+    @Column(name = "join_date")
+    private LocalDateTime joinDate;
 }
