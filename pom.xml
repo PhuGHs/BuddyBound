@@ -99,7 +99,12 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.25.1</version>
+            <version>4.24.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.1</version>
         </dependency>
     </dependencies>
 
@@ -120,21 +125,40 @@
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.25.1</version>
+                <version>4.27.0</version>
                 <configuration>
-                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+<!--                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>-->
+                    <changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
+                    <diffChangeLogFile>${project.basedir}/src/main/resources/db/changelog/changes/${maven.build.timestamp}_changelog.yaml</diffChangeLogFile>
+                    <outputChangeLogFile>${project.basedir}/src/main/resources/db/changelog/changes/${maven.build.timestamp}_changelog.yaml</outputChangeLogFile>
+                    <driver>com.mysql.cj.jdbc.Driver</driver>
+                    <url>jdbc:mysql://localhost:3306/buddy_bound</url>
+                    <username>root</username>
+                    <password>123456</password>
+                    <referenceUrl>hibernate:spring:com.mobile.buddybound?dialect=org.hibernate.dialect.MySQLDialect
+                        &amp;hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+                        &amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+                    </referenceUrl>
+                    <verbose>true</verbose>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>diff</goal>
+                        </goals>
+                        <phase>process-classes</phase>
+                    </execution>
+                </executions>
                 <dependencies>
-                    <dependency>
-                        <groupId>com.mysql</groupId>
-                        <artifactId>mysql-connector-j</artifactId>
-                        <version>8.0.33</version>
-                    </dependency>
-                    <!-- Add this for automatic generation from JPA entities -->
                     <dependency>
                         <groupId>org.liquibase.ext</groupId>
                         <artifactId>liquibase-hibernate6</artifactId>
-                        <version>4.25.1</version>
+                        <version>4.27.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-starter-data-jpa</artifactId>
+                        <version>3.2.4</version>
                     </dependency>
                 </dependencies>
             </plugin>

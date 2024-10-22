@@ -10,11 +10,20 @@ spring:
     password: ${DB_PW:123456}
     url: ${DB_URL:jdbc:mysql://localhost:3306/buddy_bound?createDatabaseIfNotExist=true}
 
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:vanphudh2003}
+      connect-timeout: 60000
 
   jpa:
     show-sql: true
@@ -22,7 +31,7 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
 
   mail:
@@ -41,5 +50,11 @@ spring:
     timeout: 1800
 
   liquibase:
-    change-log: classpath:db/changelog/changelog-master.mysql.sql
+    change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
+
+jwt:
+  secret: fw/xG>MAp-boAO4
+
+api:
+  prefix: api/v1

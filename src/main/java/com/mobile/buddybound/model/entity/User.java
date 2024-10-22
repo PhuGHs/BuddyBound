@@ -14,12 +14,6 @@ public class User {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "email", nullable = false)
-    private String email;
-
-    @Column(name = "hash_password", nullable = false)
-    private String hashPassword;
-
     @Column(name = "phone_number")
     private String phoneNumber;
 
@@ -29,7 +23,9 @@ public class User {
     @Column(name = "country")
     private String country;
 
-    @ManyToOne
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @Column(name = "gender")
+    private boolean gender;
+
+    @OneToOne(mappedBy = "user")
+    private Account account;
 }
