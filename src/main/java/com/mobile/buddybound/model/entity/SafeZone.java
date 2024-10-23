@@ -2,6 +2,8 @@ package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "safe_zones")
 public class SafeZone {
@@ -18,4 +20,7 @@ public class SafeZone {
 
     @Column(name = "radius")
     private float radius;
+
+    @OneToMany(mappedBy = "safeZone")
+    private List<UserSafeZone> userSafeZones;
 }

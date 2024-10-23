@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Table(name = "accounts")
 @Entity
 @AllArgsConstructor
@@ -34,6 +36,9 @@ public class Account extends BaseEntity {
 
     @Column(name = "verification_code")
     private String verificationCode;
+
+    @OneToMany(mappedBy = "account")
+    private List<AccountSession> sessions;
 
     public Account(String email, String password) {
         this.email = email;

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -28,4 +30,10 @@ public class User {
 
     @OneToOne(mappedBy = "user")
     private Account account;
+
+    @OneToMany(mappedBy = "user")
+    private List<Member> members;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserSafeZone> userSafeZones;
 }

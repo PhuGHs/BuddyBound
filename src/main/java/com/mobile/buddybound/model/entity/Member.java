@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "members")
@@ -14,11 +15,11 @@ public class Member {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
 
     @Column(name = "nick_name")
@@ -26,5 +27,8 @@ public class Member {
 
     @CreatedDate
     @Column(name = "join_date")
-    private LocalDateTime joinDate;
+    private LocalDateTime joinDate = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "member")
+    private List<Message> messages;
 }

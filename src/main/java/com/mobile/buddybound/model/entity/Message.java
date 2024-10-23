@@ -13,11 +13,11 @@ public class Message extends BaseEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", referencedColumnName = "id")
     private Group group;
 
     @ManyToOne
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", referencedColumnName = "id")
     private Member member;
 
     @Column(name = "content")

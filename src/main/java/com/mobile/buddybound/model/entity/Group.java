@@ -2,7 +2,9 @@ package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
 
-@Table(name = "group")
+import java.util.List;
+
+@Table(name = "chat_group")
 @Entity
 public class Group extends BaseEntity {
     @Id
@@ -19,4 +21,10 @@ public class Group extends BaseEntity {
 
     @Column(name = "group_type")
     private String groupType;
+
+    @OneToMany(mappedBy = "group")
+    private List<Member> members;
+
+    @OneToMany(mappedBy = "group")
+    private List<Message> messages;
 }
