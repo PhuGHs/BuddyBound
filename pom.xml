@@ -99,7 +99,7 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.24.0</version>
+            <version>4.28.0</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -125,40 +125,49 @@
             <plugin>
                 <groupId>org.liquibase</groupId>
                 <artifactId>liquibase-maven-plugin</artifactId>
-                <version>4.27.0</version>
+                <version>4.28.0</version>
                 <configuration>
-<!--                    <propertyFile>src/main/resources/liquibase.properties</propertyFile>-->
                     <changeLogFile>src/main/resources/db/changelog/db.changelog-master.yaml</changeLogFile>
-                    <diffChangeLogFile>${project.basedir}/src/main/resources/db/changelog/changes/${maven.build.timestamp}_changelog.yaml</diffChangeLogFile>
-                    <outputChangeLogFile>${project.basedir}/src/main/resources/db/changelog/changes/${maven.build.timestamp}_changelog.yaml</outputChangeLogFile>
+                    <outputChangeLogFile>src/main/resources/db/changelog/changes/V1.0.0__init_DB.mysql.sql</outputChangeLogFile>
+                    <diffChangeLogFile>src/main/resources/db/changelog/changes/A_changelog.mysql.sql</diffChangeLogFile>
                     <driver>com.mysql.cj.jdbc.Driver</driver>
                     <url>jdbc:mysql://localhost:3306/buddy_bound</url>
                     <username>root</username>
                     <password>123456</password>
-                    <referenceUrl>hibernate:spring:com.mobile.buddybound?dialect=org.hibernate.dialect.MySQLDialect
-                        &amp;hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
-                        &amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
-                    </referenceUrl>
+                    <referenceUrl>hibernate:spring:com.mobile.buddybound?dialect=org.hibernate.dialect.MySQLDialect&amp;hibernate.physical_naming_strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy&amp;hibernate.implicit_naming_strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy</referenceUrl>
                     <verbose>true</verbose>
+                    <logging>debug</logging>
+                    <!-- Add these properties -->
+                    <contexts>default</contexts>
+                    <changeSetAuthor>liquibase</changeSetAuthor>
+                    <!-- Ensure proper scan of entities -->
+                    <diffTypes>tables,columns,indexes,foreignkeys,primarykeys,uniqueconstraints</diffTypes>
                 </configuration>
                 <executions>
                     <execution>
+                        <id>diff-changelog</id>
+                        <phase>process-resources</phase>
                         <goals>
                             <goal>diff</goal>
                         </goals>
-                        <phase>process-classes</phase>
                     </execution>
                 </executions>
                 <dependencies>
                     <dependency>
                         <groupId>org.liquibase.ext</groupId>
                         <artifactId>liquibase-hibernate6</artifactId>
-                        <version>4.27.0</version>
+                        <version>4.28.0</version>
                     </dependency>
                     <dependency>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-starter-data-jpa</artifactId>
                         <version>3.2.4</version>
+                    </dependency>
+                    <!-- Add MySQL connector dependency -->
+                    <dependency>
+                        <groupId>com.mysql</groupId>
+                        <artifactId>mysql-connector-j</artifactId>
+                        <version>8.3.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
