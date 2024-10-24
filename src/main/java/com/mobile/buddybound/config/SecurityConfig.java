@@ -1,9 +1,11 @@
 package com.mobile.buddybound.config;
 
+import com.mobile.buddybound.exception.CustomAccessDeniedHandler;
 import com.mobile.buddybound.security.JwtAuthEntryPoint;
 import com.mobile.buddybound.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -18,16 +20,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.List;
 
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Configuration
 public class SecurityConfig {
     private final JwtAuthEntryPoint jwtAuthEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -41,7 +42,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .exceptionHandling(eh -> eh.authenticationEntryPoint(jwtAuthEntryPoint));
+                .exceptionHandling(eh -> eh.authenticationEntryPoint(jwtAuthEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler));
         return http.build();
     }
 

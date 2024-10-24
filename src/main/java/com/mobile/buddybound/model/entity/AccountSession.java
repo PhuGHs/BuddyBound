@@ -1,11 +1,17 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "account_session")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class AccountSession {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,9 +21,6 @@ public class AccountSession {
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
-
-    @Column(name = "access_token", nullable = false, length = 512)
-    private String accessToken;
 
     @Column(name = "refresh_token", nullable = false, length = 512)
     private String refreshToken;

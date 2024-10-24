@@ -2,6 +2,8 @@ package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 @Table(name = "images")
 public class Image {
@@ -16,4 +18,7 @@ public class Image {
     @ManyToOne
     @JoinColumn(name = "message_id")
     private Message message;
+
+    @OneToMany(mappedBy = "image")
+    private List<UserImage> images;
 }

@@ -1,15 +1,18 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,8 +25,8 @@ public class User {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "country")
-    private String country;
+    @Column(name = "birthdate")
+    private LocalDateTime birthDate;
 
     @Column(name = "gender")
     private boolean gender;
@@ -36,4 +39,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<UserSafeZone> userSafeZones;
+
+    @OneToMany(mappedBy = "user")
+    private List<UserImage> images;
 }
