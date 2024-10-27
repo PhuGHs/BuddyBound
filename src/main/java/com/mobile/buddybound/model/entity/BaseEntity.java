@@ -23,10 +23,10 @@ public abstract class BaseEntity implements Serializable {
     @CreatedDate
     @Column(name = "created_at", updatable = false, nullable = false)
     @DiffExclude
-    protected LocalDateTime createdAt;
+    protected LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
     @Column(name = "updated_at")
     @DiffExclude
-    protected LocalDateTime updatedAt;
+    protected LocalDateTime updatedAt = LocalDateTime.now();
 }

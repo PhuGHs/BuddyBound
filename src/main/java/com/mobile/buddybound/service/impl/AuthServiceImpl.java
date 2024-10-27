@@ -5,11 +5,13 @@ import com.mobile.buddybound.model.dto.LoginDto;
 import com.mobile.buddybound.model.dto.RegisterDto;
 import com.mobile.buddybound.model.entity.Account;
 import com.mobile.buddybound.model.entity.AccountSession;
+import com.mobile.buddybound.model.entity.Role;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.model.response.AuthResponse;
 import com.mobile.buddybound.repository.AccountRepository;
 import com.mobile.buddybound.repository.AccountSessionRepository;
+import com.mobile.buddybound.repository.RoleRepository;
 import com.mobile.buddybound.security.JwtTokenUtils;
 import com.mobile.buddybound.service.AuthService;
 import com.mobile.buddybound.service.mapper.AccountMapper;
@@ -22,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -30,20 +33,24 @@ import java.time.LocalDateTime;
 public class AuthServiceImpl implements AuthService {
     private final AccountRepository accountRepository;
     private final AccountSessionRepository accountSessionRepository;
+    private final RoleRepository roleRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final AccountMapper accountMapper;
     private final JwtTokenUtils jwtTokenUtils;
 
     @Override
+    @Transactional
     public ResponseEntity<ApiResponse> register(RegisterDto registerDto) {
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse(ApiResponseStatus.FAIL, "Email address is taken", ""));
         }
+        Role adult = roleRepository.findByRoleName(Role.ADULTS).orElseThrow(() -> new NotFoundException("Can't find role"));
 
         Account account = Account.builder()
                 .email(registerDto.getEmail())
                 .password(passwordEncoder.encode(registerDto.getPassword()))
+                .role(adult)
                 .verificationCode("")
                 .build();
 
@@ -78,6 +85,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<ApiResponse> refresh(String refreshToken) {
         AccountSession session = accountSessionRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new NotFoundException("Refresh token is not found"));

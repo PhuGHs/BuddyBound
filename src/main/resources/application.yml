@@ -57,3 +57,13 @@ jwt:
 
 api:
   prefix: api/v1
+
+springdoc:
+  api-docs:
+    enabled: true
+  packages-to-scan: com.mobile.buddybound.controller
+  swagger-ui:
+    filter: true
+    tags-sorter: alpha
+    operations-sorter: method
+    try-it-out-enabled: true
