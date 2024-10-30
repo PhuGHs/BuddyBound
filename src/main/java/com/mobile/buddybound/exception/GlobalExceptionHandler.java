@@ -7,11 +7,14 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -30,6 +33,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleNullPointerException(final NullPointerException ex) {
         log.error("NullPointerException occured: {}", ex);
         return new ResponseEntity<>("A null value was encountered", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<String> handleBadCredentialsException(final BadCredentialsException ex) {
+        log.error("BadCredentialsException occured: {}", ex);
+        return new ResponseEntity<>("Bad credentials: Wrong email or password!", HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<String> handleAccessDeniedException(AuthorizationDeniedException ex) {
+        log.error("Access denied: {}", ex.getMessage());
+        return new ResponseEntity<>("Access denied: You do not have permission to access this resource", HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

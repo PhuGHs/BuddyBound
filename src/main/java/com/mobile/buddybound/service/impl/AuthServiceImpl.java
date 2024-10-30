@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<AuthResponse> login(LoginDto loginDto) {
 //        authenticate
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
@@ -69,6 +71,8 @@ public class AuthServiceImpl implements AuthService {
 //        generateToken
         String accessToken = jwtTokenUtils.generateToken(loginDto.getEmail());
         String refreshToken = jwtTokenUtils.generateRefreshToken(loginDto.getEmail());
+
+        accountSessionRepository.updateSessionByAccountId(account.getId());
 
         AccountSession accountSession = AccountSession.builder()
                 .account(account)
