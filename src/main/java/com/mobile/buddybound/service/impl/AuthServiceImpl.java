@@ -6,12 +6,14 @@ import com.mobile.buddybound.model.dto.RegisterDto;
 import com.mobile.buddybound.model.entity.Account;
 import com.mobile.buddybound.model.entity.AccountSession;
 import com.mobile.buddybound.model.entity.Role;
+import com.mobile.buddybound.model.entity.User;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.model.response.AuthResponse;
 import com.mobile.buddybound.repository.AccountRepository;
 import com.mobile.buddybound.repository.AccountSessionRepository;
 import com.mobile.buddybound.repository.RoleRepository;
+import com.mobile.buddybound.repository.UserRepository;
 import com.mobile.buddybound.security.JwtTokenUtils;
 import com.mobile.buddybound.service.AuthService;
 import com.mobile.buddybound.service.mapper.AccountMapper;
@@ -38,20 +40,27 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final AccountMapper accountMapper;
+    private final UserRepository userRepository;
     private final JwtTokenUtils jwtTokenUtils;
 
     @Override
     @Transactional
     public ResponseEntity<ApiResponse> register(RegisterDto registerDto) {
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse(ApiResponseStatus.FAIL, "Email address is taken", ""));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse(ApiResponseStatus.FAIL, "Email address was already taken", ""));
         }
         Role adult = roleRepository.findByRoleName(Role.ADULTS).orElseThrow(() -> new NotFoundException("Can't find role"));
+
+        User user = User.builder()
+                .fullName(registerDto.getFullName())
+                .build();
+        userRepository.save(user);
 
         Account account = Account.builder()
                 .email(registerDto.getEmail())
                 .password(passwordEncoder.encode(registerDto.getPassword()))
                 .role(adult)
+                .user(user)
                 .verificationCode("")
                 .build();
 

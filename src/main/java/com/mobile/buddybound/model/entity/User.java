@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -42,4 +43,10 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<UserImage> images;
+
+    @OneToMany(mappedBy = "sender")
+    private List<Relationship> forwardRelationships;
+
+    @OneToMany(mappedBy = "receiver")
+    private List<Relationship> backwardRelationships;
 }
