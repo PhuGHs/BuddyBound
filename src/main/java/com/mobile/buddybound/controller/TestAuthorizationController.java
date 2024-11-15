@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestAuthorizationController {
 
     @GetMapping("/adult")
-    @PreAuthorize("hasAuthority('ADULTS')")
+//    @PreAuthorize("hasAuthority('ADULTS')")
     public String adultMethod() {
         return "Method is executed by adults";
     }
 
     @GetMapping("/child")
-    @PreAuthorize("hasAuthority('CHILDREN')")
+//    @PreAuthorize("hasAuthority('CHILDREN')")
     public String childMethod() {
         return "Method is executed by children";
     }

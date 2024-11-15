@@ -14,6 +14,14 @@ public interface RelationshipMapper {
     @Mapping(source = "receiverId", target = "receiver")
     FamilyRelationship toFamilyRelationship(RelationshipDto dto);
 
+    @Mapping(source = "sender", target = "sender")
+    @Mapping(source = "receiver", target = "receiver")
+    RelationshipDto toFamilyRelationshipDto(FamilyRelationship relationship);
+
+    @Mapping(source = "sender", target = "sender")
+    @Mapping(source = "receiver", target = "receiver")
+    RelationshipDto toFriendRelationshipDto(FriendRelationship relationship);
+
     // Mapping for FriendRelationship
     @Mapping(source = "senderId", target = "sender")
     @Mapping(source = "receiverId", target = "receiver")

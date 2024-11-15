@@ -47,14 +47,17 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public ResponseEntity<ApiResponse> register(RegisterDto registerDto) {
         if (accountRepository.existsByEmail(registerDto.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiResponse(ApiResponseStatus.FAIL, "Email address was already taken", ""));
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ApiResponse(ApiResponseStatus.FAIL, "Email address was already taken", ""));
         }
-        Role adult = roleRepository.findByRoleName(Role.ADULTS).orElseThrow(() -> new NotFoundException("Can't find role"));
+
+        Role adult = roleRepository.findByRoleName(Role.ADULTS)
+                .orElseThrow(() -> new NotFoundException("Can't find role"));
 
         User user = User.builder()
                 .fullName(registerDto.getFullName())
                 .build();
-        userRepository.save(user);
+        user = userRepository.save(user);
 
         Account account = Account.builder()
                 .email(registerDto.getEmail())
@@ -66,7 +69,8 @@ public class AuthServiceImpl implements AuthService {
 
         account = accountRepository.save(account);
 
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Register successfully", accountMapper.toDto(account)));
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS,
+                "Register successfully", accountMapper.toDto(account)));
     }
 
     @Override

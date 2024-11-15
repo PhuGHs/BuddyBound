@@ -1,11 +1,12 @@
 package com.mobile.buddybound.service;
 
 import com.mobile.buddybound.model.dto.RelationshipDto;
-import org.apache.coyote.BadRequestException;
+import com.mobile.buddybound.model.enumeration.RelationshipType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
 public interface RelationshipService {
     ResponseEntity<?> addRelationship(RelationshipDto dto);
+    ResponseEntity<?> getAllRelationship(boolean isPending, RelationshipType type);
 }

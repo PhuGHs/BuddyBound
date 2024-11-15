@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -68,5 +69,15 @@ public class GlobalExceptionHandler {
         String errorMsg = exception.getMessage();
         ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND, errorMsg);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(com.mobile.buddybound.exception.BadRequestException.class)
+    public ResponseEntity<String> handleBadRequestException(final BadRequestException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleArgumentTypeMismatch(final MethodArgumentTypeMismatchException ex) {
+        return new ResponseEntity<>("Invalid input type", HttpStatus.BAD_REQUEST);
     }
 }

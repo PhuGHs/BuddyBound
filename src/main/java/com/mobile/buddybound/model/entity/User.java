@@ -35,7 +35,7 @@ public class User {
     @OneToOne(mappedBy = "user")
     private Account account;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Member> members;
 
     @OneToMany(mappedBy = "user")

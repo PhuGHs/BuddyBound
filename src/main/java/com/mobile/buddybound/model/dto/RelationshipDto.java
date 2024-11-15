@@ -1,6 +1,7 @@
 package com.mobile.buddybound.model.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mobile.buddybound.model.enumeration.FamilyType;
 import com.mobile.buddybound.model.enumeration.FriendType;
@@ -14,20 +15,33 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RelationshipDto {
-    public interface CreateView {}
-    public interface ReadView {}
-
-    @JsonView(ReadView.class)
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long senderId;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long receiverId;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private UserDto sender;
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private UserDto receiver;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private RelationshipType relationshipType;
-    @JsonView(ReadView.class)
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String content;
-    @JsonView(ReadView.class)
+
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private boolean isPending;
+
     private FamilyType familyType;
+
     private FriendType friendType;
 }

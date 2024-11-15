@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Table(name = "role")
 @AllArgsConstructor
@@ -24,8 +26,8 @@ public class Role {
     @Column(name = "description")
     private String description;
 
-    @OneToOne(mappedBy = "role")
-    private Account account;
+    @OneToMany(mappedBy = "role")
+    private List<Account> accounts;
 
     public static String ADULTS = "ADULTS";
     public static String CHILDREN = "CHILDREN";
