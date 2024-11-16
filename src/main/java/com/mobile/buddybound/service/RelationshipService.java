@@ -9,4 +9,5 @@ import org.springframework.stereotype.Service;
 public interface RelationshipService {
     ResponseEntity<?> addRelationship(RelationshipDto dto);
     ResponseEntity<?> getAllRelationship(boolean isPending, RelationshipType type);
+    ResponseEntity<?> updateRelationship(RelationshipDto dto);
 }

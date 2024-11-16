@@ -3,6 +3,7 @@ package com.mobile.buddybound.model.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +27,8 @@ public class User {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
-    @Column(name = "birthdate")
-    private LocalDateTime birthDate;
+    @Column(name = "birthday")
+    private LocalDate birthday;
 
     @Column(name = "gender")
     private boolean gender;

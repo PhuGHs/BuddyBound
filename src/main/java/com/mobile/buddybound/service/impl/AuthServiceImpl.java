@@ -28,7 +28,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 
 @Service
@@ -54,15 +56,22 @@ public class AuthServiceImpl implements AuthService {
         Role adult = roleRepository.findByRoleName(Role.ADULTS)
                 .orElseThrow(() -> new NotFoundException("Can't find role"));
 
+        Role child = roleRepository.findByRoleName(Role.CHILDREN)
+                .orElseThrow(() -> new NotFoundException("Can't find role"));
+
         User user = User.builder()
                 .fullName(registerDto.getFullName())
+                .birthday(registerDto.getBirthday())
+                .gender(registerDto.isGender())
                 .build();
+
+        boolean isChild = Period.between(registerDto.getBirthday(), LocalDate.now()).getYears() < 18;
         user = userRepository.save(user);
 
         Account account = Account.builder()
                 .email(registerDto.getEmail())
                 .password(passwordEncoder.encode(registerDto.getPassword()))
-                .role(adult)
+                .role(isChild ? child : adult)
                 .user(user)
                 .verificationCode("")
                 .build();
