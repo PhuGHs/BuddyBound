@@ -1,5 +1,7 @@
 package com.mobile.buddybound.security;
 
+import com.mobile.buddybound.repository.AccountSessionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import io.jsonwebtoken.*;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,9 @@ public class JwtTokenUtils {
     private String SECRET_KEY;
     private final long ACCESS_TOKEN_VALIDITY = 1000L * 60 * 15;
     private final long REFRESH_TOKEN_VALIDITY = 1000L * 60 * 60 * 24 * 30;
+
+    @Autowired
+    private AccountSessionRepository accountSessionRepository;
 
     public String generateToken(String username) {
         return createToken(username, ACCESS_TOKEN_VALIDITY);

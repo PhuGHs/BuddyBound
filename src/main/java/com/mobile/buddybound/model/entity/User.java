@@ -21,7 +21,7 @@ public class User {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     private String phoneNumber;
 
     @Column(name = "full_name", nullable = false)
@@ -50,4 +50,7 @@ public class User {
 
     @OneToMany(mappedBy = "receiver")
     private List<Relationship> backwardRelationships;
+
+    @OneToMany(mappedBy = "user")
+    private List<BlockedRelationship> blockedRelationships;
 }

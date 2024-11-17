@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RelationshipDto {
-    @JsonView({Views.Read.class, Views.Update.class})
+    @JsonView({Views.Read.class, Views.Update.class, Views.PartlyUpdate.class})
     @JsonProperty(access = JsonProperty.Access.READ_WRITE)
     private Long id;
 

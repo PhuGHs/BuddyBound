@@ -2,23 +2,19 @@ package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
+import com.mobile.buddybound.model.dto.BlockedRelationshipDto;
 import com.mobile.buddybound.model.dto.RelationshipDto;
-import com.mobile.buddybound.model.entity.FamilyRelationship;
-import com.mobile.buddybound.model.entity.FriendRelationship;
-import com.mobile.buddybound.model.entity.Relationship;
-import com.mobile.buddybound.model.entity.User;
+import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.enumeration.FamilyType;
 import com.mobile.buddybound.model.enumeration.RelationshipType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.abstract_factory.FamilyRelationshipFactory;
 import com.mobile.buddybound.pattern.abstract_factory.FriendRelationshipFactory;
-import com.mobile.buddybound.repository.FamilyRelationshipRepository;
-import com.mobile.buddybound.repository.FriendRelationshipRepository;
-import com.mobile.buddybound.repository.RelationshipRepository;
-import com.mobile.buddybound.repository.UserRepository;
+import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.service.RelationshipService;
 import com.mobile.buddybound.service.UserService;
+import com.mobile.buddybound.service.mapper.BlockedRelationshipMapper;
 import com.mobile.buddybound.service.mapper.RelationshipMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +34,11 @@ public class RelationshipServiceImpl implements RelationshipService {
     private final FamilyRelationshipRepository familyRelationshipRepository;
     private final FriendRelationshipRepository friendRelationshipRepository;
     private final UserService userService;
+    private final BlockedRelationshipMapper blockedRelationshipMapper;
+    private final BlockedRelationshipRepository blockedRelationshipRepository;
 
     @Override
+    @Transactional
     public ResponseEntity<?> addRelationship(RelationshipDto dto) {
         User sender = userService.getCurrentLoggedInUser();
         if (!userRepository.existsById(dto.getReceiverId())) {
@@ -73,7 +72,6 @@ public class RelationshipServiceImpl implements RelationshipService {
     }
 
     @Override
-    @Transactional
     public ResponseEntity<?> getAllRelationship(boolean isPending, RelationshipType type) {
         Long currentUserId = userService.getCurrentLoggedInUser().getId();
         if (this.isFamily(type)) {
@@ -97,6 +95,26 @@ public class RelationshipServiceImpl implements RelationshipService {
             return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "update Relationship", relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) relationship)));
         }
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "update relationship", relationshipMapper.toFriendRelationshipDto((FriendRelationship) relationship)));
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> limitOrUnlimitRelationship(BlockedRelationshipDto dto) {
+        if (blockedRelationshipRepository.existsById(dto.getId())) {
+            blockedRelationshipRepository.deleteById(dto.getId());
+            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Break restriction successfully!", ""));
+        }
+        User user = userService.getCurrentLoggedInUser();
+        BlockedRelationship entity = blockedRelationshipMapper.toEntity(dto);
+        entity.setUser(user);
+        entity = blockedRelationshipRepository.save(entity);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Restricted this user", blockedRelationshipMapper.toDto(entity)));
+    }
+
+    @Override
+    public ResponseEntity<?> getUserLimitedRelationshipList() {
+        User user = userService.getCurrentLoggedInUser();
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all restricted users", user.getBlockedRelationships().stream().map(blockedRelationshipMapper::toDto)));
     }
 
     private boolean isFamily(RelationshipType type) {
