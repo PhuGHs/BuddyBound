@@ -25,10 +25,25 @@ public class Member {
     @Column(name = "nick_name")
     private String nickName;
 
+    @Column(name = "is_admin")
+    private boolean isAdmin;
+
+    @Column(name = "is_approved")
+    private boolean isApproved;
+
     @CreatedDate
     @Column(name = "join_date")
     private LocalDateTime joinDate = LocalDateTime.now();
 
     @OneToMany(mappedBy = "member")
     private List<Message> messages;
+
+    @OneToMany(mappedBy = "member")
+    private List<Post> posts;
+
+    @OneToMany(mappedBy = "member")
+    private List<PostVisibility> postVisibilities;
+
+    @OneToMany(mappedBy = "member")
+    private List<Comment> comments;
 }

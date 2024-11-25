@@ -23,6 +23,11 @@ public class Message extends BaseEntity {
     @Column(name = "content")
     private String content;
 
-    @OneToMany(mappedBy = "message")
+    @ManyToMany
+    @JoinTable(
+            name = "message_images",
+            joinColumns = @JoinColumn(name = "message_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
     private List<Image> images;
 }

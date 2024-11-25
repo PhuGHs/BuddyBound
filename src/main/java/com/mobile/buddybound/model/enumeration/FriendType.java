@@ -5,4 +5,5 @@ public enum FriendType {
     WORK_FRIENDS,
     CASUAL_FRIENDS,
     CLOSE_FRIENDS,
+    OTHERS
 }
