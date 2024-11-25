@@ -5,6 +5,7 @@ import io.imagekit.sdk.ImageKit;
 import io.imagekit.sdk.models.FileCreateRequest;
 import io.imagekit.sdk.models.results.Result;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,9 +14,9 @@ import java.util.Arrays;
 import java.util.Base64;
 
 @Component
-@RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService  {
-    private final ImageKit imageKit;
+    @Autowired
+    private ImageKit imageKit;
 
     @Override
     public String uploadImage(MultipartFile file) throws IOException {

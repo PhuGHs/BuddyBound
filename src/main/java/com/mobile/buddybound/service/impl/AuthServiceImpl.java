@@ -7,10 +7,7 @@ import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.model.response.AuthResponse;
-import com.mobile.buddybound.repository.AccountRepository;
-import com.mobile.buddybound.repository.AccountSessionRepository;
-import com.mobile.buddybound.repository.RoleRepository;
-import com.mobile.buddybound.repository.UserRepository;
+import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.security.JwtTokenUtils;
 import com.mobile.buddybound.service.AuthService;
 import com.mobile.buddybound.service.mapper.AccountMapper;
@@ -40,7 +37,10 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountMapper accountMapper;
     private final UserRepository userRepository;
+    private final UserImageRepository userImageRepository;
     private final JwtTokenUtils jwtTokenUtils;
+    private final static String maleAvatarUrl = "https://ik.imagekit.io/apwerlhez/5.png?updatedAt=1732544514448";
+    private final static String femaleAvatarUrl = "https://ik.imagekit.io/apwerlhez/2.png?updatedAt=1732544514560";
 
     @Override
     @Transactional
@@ -56,9 +56,7 @@ public class AuthServiceImpl implements AuthService {
         Role child = roleRepository.findByRoleName(Role.CHILDREN)
                 .orElseThrow(() -> new NotFoundException("Can't find role"));
 
-//        UserImage userImage = UserImage.builder()
-//                .image()
-//                .build()
+        Image image = registerDto.isGender() ? Image.builder().imageUrl(maleAvatarUrl).build() : Image.builder().imageUrl(femaleAvatarUrl).build();
 
         User user = User.builder()
                 .fullName(registerDto.getFullName())
@@ -68,6 +66,13 @@ public class AuthServiceImpl implements AuthService {
 
         boolean isChild = Period.between(registerDto.getBirthday(), LocalDate.now()).getYears() < 18;
         user = userRepository.save(user);
+
+        UserImage userImage = UserImage.builder()
+                .user(user)
+                .image(image)
+                .mainAvatar(true)
+                .build();
+        userImageRepository.save(userImage);
 
         Account account = Account.builder()
                 .email(registerDto.getEmail())

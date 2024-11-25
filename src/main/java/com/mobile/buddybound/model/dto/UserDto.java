@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -28,4 +30,7 @@ public class UserDto {
     @JsonProperty("gender")
     @JsonView({Views.Read.class, Views.Create.class})
     private boolean gender;
+
+    @JsonView({Views.Read.class})
+    private List<UserImageDto> images;
 }

@@ -1,5 +1,6 @@
 package com.mobile.buddybound.model.entity;
 
+import com.mobile.buddybound.model.enumeration.GroupType;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -20,7 +21,8 @@ public class Group extends BaseEntity {
     private User owner;
 
     @Column(name = "group_type")
-    private String groupType;
+    @Enumerated(EnumType.STRING)
+    private GroupType groupType;
 
     @OneToMany(mappedBy = "group")
     private List<Member> members;
