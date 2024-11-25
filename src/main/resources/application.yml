@@ -7,7 +7,7 @@ spring:
 
   datasource:
     username: ${DB_USERNAME:root}
-    password: ${DB_PW:123456}
+    password: ${DB_PW:Vanphudh02312*}
     url: ${DB_URL:jdbc:mysql://localhost:3306/buddy_bound?createDatabaseIfNotExist=true}
 
     hikari:
@@ -57,6 +57,11 @@ jwt:
 
 api:
   prefix: api/v1
+
+imagekit:
+  private-key: ${IMAGEKIT_PRIVATE_KEY}
+  public-key: ${IMAGEKIT_PUBLIC_KEY}
+  url-endpoint: ${IMAGEKIT_URL}
 
 springdoc:
   api-docs:

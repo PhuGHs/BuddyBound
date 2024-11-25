@@ -3,10 +3,7 @@ package com.mobile.buddybound.service.impl;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.LoginDto;
 import com.mobile.buddybound.model.dto.RegisterDto;
-import com.mobile.buddybound.model.entity.Account;
-import com.mobile.buddybound.model.entity.AccountSession;
-import com.mobile.buddybound.model.entity.Role;
-import com.mobile.buddybound.model.entity.User;
+import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.model.response.AuthResponse;
@@ -58,6 +55,10 @@ public class AuthServiceImpl implements AuthService {
 
         Role child = roleRepository.findByRoleName(Role.CHILDREN)
                 .orElseThrow(() -> new NotFoundException("Can't find role"));
+
+//        UserImage userImage = UserImage.builder()
+//                .image()
+//                .build()
 
         User user = User.builder()
                 .fullName(registerDto.getFullName())

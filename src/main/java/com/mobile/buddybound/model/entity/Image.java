@@ -12,7 +12,7 @@ public class Image {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
     @ManyToOne

@@ -1,9 +1,15 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
 
 @Table(name = "user_images")
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
