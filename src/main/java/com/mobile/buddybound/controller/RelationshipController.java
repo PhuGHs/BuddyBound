@@ -29,8 +29,12 @@ public class RelationshipController {
 
     @GetMapping("/get-user-relationship")
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> getAllFamilyRelationship( @RequestParam("isPending") boolean isPending, @RequestParam("type") RelationshipType type) {
-        return this.relationshipService.getAllRelationship(isPending, type);
+    public ResponseEntity<?> getAllFamilyRelationship(
+            @RequestParam(value = "searchText", required = false) String searchText,
+            @RequestParam(value = "isPending", defaultValue = "false", required = false) boolean isPending,
+            @RequestParam("type") RelationshipType type
+    ) {
+        return this.relationshipService.getAllRelationship(searchText, isPending, type);
     }
 
     @PutMapping("/update-relationship")

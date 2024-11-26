@@ -23,9 +23,6 @@ public abstract class Relationship extends BaseEntity {
     @JoinColumn(name = "receiver_id")
     protected User receiver;
 
-    @Column(name = "content")
-    protected String content;
-
     @Column(name = "is_pending")
     protected boolean isPending = true;
 }

@@ -1,15 +1,14 @@
 package com.mobile.buddybound.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mobile.buddybound.model.enumeration.FamilyRole;
 import com.mobile.buddybound.model.enumeration.FamilyType;
 import com.mobile.buddybound.model.enumeration.FriendType;
 import com.mobile.buddybound.model.enumeration.RelationshipType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,8 +18,10 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Builder
 public class RelationshipDto {
-    @JsonView({Views.Read.class, Views.Update.class, Views.PartlyUpdate.class})
+    @JsonView({Views.Read.class, Views.Update.class})
     @JsonProperty(access = JsonProperty.Access.READ_WRITE)
     private Long id;
 
@@ -30,29 +31,23 @@ public class RelationshipDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonView({Views.Read.class})
-    private UserDto sender;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @JsonView({Views.Read.class})
     private UserDto receiver;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @JsonView({Views.Create.class, Views.Update.class})
     private RelationshipType relationshipType;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @JsonView({Views.Read.class})
-    private String content;
-
-    @JsonView({Views.Read.class})
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private boolean pending = true;
-
     @JsonView({Views.Create.class, Views.Read.class, Views.Update.class})
     private FamilyType familyType;
 
     @JsonView({Views.Create.class, Views.Read.class, Views.Update.class})
     private FriendType friendType;
+
+    @JsonView({Views.Create.class, Views.Read.class, Views.Update.class})
+    private FamilyRole senderRole;
+
+    @JsonView({Views.Create.class, Views.Read.class, Views.Update.class})
+    private FamilyRole receiverRole;
 
     @JsonView({Views.Read.class})
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)

@@ -72,18 +72,27 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
+    @ExceptionHandler(InvalidRelationshipException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRelationshipException(InvalidRelationshipException exception) {
+        String errorMsg = exception.getMessage();
+        ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST, errorMsg);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
     @ExceptionHandler(com.mobile.buddybound.exception.BadRequestException.class)
-    public ResponseEntity<String> handleBadRequestException(final BadRequestException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleBadRequestException(final BadRequestException ex) {
+        String errorMsg = ex.getMessage();
+        ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST, errorMsg);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleArgumentTypeMismatch(final MethodArgumentTypeMismatchException ex) {
-        return new ResponseEntity<>("Invalid input type", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleArgumentTypeMismatch(final MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(HttpStatus.BAD_REQUEST, "Invalid input type"));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<String> handle(final HttpMessageNotReadableException ex) {
-        return new ResponseEntity<>("Invalid input type", HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handle(final HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(HttpStatus.BAD_REQUEST, "Invalid input type"));
     }
 }

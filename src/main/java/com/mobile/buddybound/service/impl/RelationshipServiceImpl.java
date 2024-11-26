@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.controller.validation.RelationshipValidator;
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.BlockedRelationshipDto;
@@ -12,16 +13,21 @@ import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.abstract_factory.FamilyRelationshipFactory;
 import com.mobile.buddybound.pattern.abstract_factory.FriendRelationshipFactory;
 import com.mobile.buddybound.repository.*;
+import com.mobile.buddybound.repository.specification.RelationshipSpecification;
 import com.mobile.buddybound.service.RelationshipService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.BlockedRelationshipMapper;
 import com.mobile.buddybound.service.mapper.RelationshipMapper;
+import com.mobile.buddybound.service.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
@@ -36,6 +42,7 @@ public class RelationshipServiceImpl implements RelationshipService {
     private final UserService userService;
     private final BlockedRelationshipMapper blockedRelationshipMapper;
     private final BlockedRelationshipRepository blockedRelationshipRepository;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -55,29 +62,62 @@ public class RelationshipServiceImpl implements RelationshipService {
 
         Relationship relationship = null;
         if (this.isFamily(dto.getRelationshipType())) {
+            RelationshipValidator.validateFamilyRelationship(dto);
             relationship = familyRelationshipFactory.createRelationship(dto);
             if (dto.getFamilyType().equals(FamilyType.PARENT_CHILD)) {
                 relationship.setPending(false);
             }
             relationship.setSender(sender);
-            relationship.setContent(sender.getFullName() + " would like to set relationship to you as " + dto.getFamilyType());
         } else {
             relationship = friendRelationshipFactory.createRelationship(dto);
             relationship.setSender(sender);
-            relationship.setContent(sender.getFullName() + " would like to set relationship to you as " + dto.getFriendType());
         }
+
+        //add notification here
         Relationship savedOne = relationshipRepository.save(relationship);
         Object returnObject = !this.isFamily(dto.getRelationshipType()) ? relationshipMapper.toFriendRelationshipDto((FriendRelationship) savedOne) : relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) savedOne);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "add Relationship", returnObject));
     }
 
     @Override
-    public ResponseEntity<?> getAllRelationship(boolean isPending, RelationshipType type) {
+    public ResponseEntity<?> getAllRelationship(String searchTerm, boolean isPending, RelationshipType type) {
         Long currentUserId = userService.getCurrentLoggedInUser().getId();
+
         if (this.isFamily(type)) {
-            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all family relationship", familyRelationshipRepository.getAll(isPending, currentUserId).stream().map(relationshipMapper::toFamilyRelationshipDto)));
+            Specification<FamilyRelationship> familySpec = Specification.where(RelationshipSpecification.hasCurrentUserId(currentUserId, FamilyRelationship.class))
+                    .and(RelationshipSpecification.hasPendingStatus(isPending, FamilyRelationship.class))
+                    .and(RelationshipSpecification.hasUserAndFullNameMatch(currentUserId, searchTerm, FamilyRelationship.class));
+
+            List<FamilyRelationship> relationships = familyRelationshipRepository.findAll(familySpec);
+            List<RelationshipDto> dtos = relationships.stream().map(r -> {
+                RelationshipDto dto = relationshipMapper.toFamilyRelationshipDto(r);
+                if (r.getReceiver().getId().equals(currentUserId)) {
+                    dto.setReceiver(userMapper.toDto(r.getSender()));
+                    return dto;
+                } else {
+                    dto.setReceiver(userMapper.toDto(r.getReceiver()));
+                    return dto;
+                }
+            }).toList();
+            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all family relationship", dtos));
         }
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all friend relationship", friendRelationshipRepository.getAll(isPending, currentUserId).stream().map(relationshipMapper::toFriendRelationshipDto)));
+
+        Specification<FriendRelationship> friendSpec = Specification.where(RelationshipSpecification.hasCurrentUserId(currentUserId, FriendRelationship.class))
+                .and(RelationshipSpecification.hasPendingStatus(isPending, FriendRelationship.class))
+                .and(RelationshipSpecification.hasUserAndFullNameMatch(currentUserId, searchTerm, FriendRelationship.class));
+
+        List<FriendRelationship> relationships = friendRelationshipRepository.findAll(friendSpec);
+        List<RelationshipDto> dtos = relationships.stream().map(r -> {
+            RelationshipDto dto = relationshipMapper.toFriendRelationshipDto(r);
+            if (r.getReceiver().getId().equals(currentUserId)) {
+                dto.setReceiver(userMapper.toDto(r.getSender()));
+                return dto;
+            } else {
+                dto.setReceiver(userMapper.toDto(r.getReceiver()));
+                return dto;
+            }
+        }).toList();
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all friend relationship", dtos));
     }
 
     @Override
@@ -123,6 +163,7 @@ public class RelationshipServiceImpl implements RelationshipService {
 
     private Relationship getRelationshipByType(RelationshipDto dto) {
         if (isFamily(dto.getRelationshipType())) {
+            RelationshipValidator.validateFamilyRelationship(dto);
             FamilyRelationship family = familyRelationshipRepository.findById(dto.getId())
                     .orElseThrow(() -> new NotFoundException("Family relationship not found"));
             family.setFamilyType(dto.getFamilyType());
