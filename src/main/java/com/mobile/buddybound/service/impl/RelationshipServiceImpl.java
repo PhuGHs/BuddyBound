@@ -12,6 +12,8 @@ import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.abstract_factory.FamilyRelationshipFactory;
 import com.mobile.buddybound.pattern.abstract_factory.FriendRelationshipFactory;
+import com.mobile.buddybound.pattern.strategy.relationship_strategy.RelationshipStrategy;
+import com.mobile.buddybound.pattern.strategy.relationship_strategy.RelationshipStrategyContext;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.repository.specification.RelationshipSpecification;
 import com.mobile.buddybound.service.RelationshipService;
@@ -42,7 +44,7 @@ public class RelationshipServiceImpl implements RelationshipService {
     private final UserService userService;
     private final BlockedRelationshipMapper blockedRelationshipMapper;
     private final BlockedRelationshipRepository blockedRelationshipRepository;
-    private final UserMapper userMapper;
+    private final RelationshipStrategyContext relationshipStrategyContext;
 
     @Override
     @Transactional
@@ -83,41 +85,9 @@ public class RelationshipServiceImpl implements RelationshipService {
     public ResponseEntity<?> getAllRelationship(String searchTerm, boolean isPending, RelationshipType type) {
         Long currentUserId = userService.getCurrentLoggedInUser().getId();
 
-        if (this.isFamily(type)) {
-            Specification<FamilyRelationship> familySpec = Specification.where(RelationshipSpecification.hasCurrentUserId(currentUserId, FamilyRelationship.class))
-                    .and(RelationshipSpecification.hasPendingStatus(isPending, FamilyRelationship.class))
-                    .and(RelationshipSpecification.hasUserAndFullNameMatch(currentUserId, searchTerm, FamilyRelationship.class));
-
-            List<FamilyRelationship> relationships = familyRelationshipRepository.findAll(familySpec);
-            List<RelationshipDto> dtos = relationships.stream().map(r -> {
-                RelationshipDto dto = relationshipMapper.toFamilyRelationshipDto(r);
-                if (r.getReceiver().getId().equals(currentUserId)) {
-                    dto.setReceiver(userMapper.toDto(r.getSender()));
-                    return dto;
-                } else {
-                    dto.setReceiver(userMapper.toDto(r.getReceiver()));
-                    return dto;
-                }
-            }).toList();
-            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all family relationship", dtos));
-        }
-
-        Specification<FriendRelationship> friendSpec = Specification.where(RelationshipSpecification.hasCurrentUserId(currentUserId, FriendRelationship.class))
-                .and(RelationshipSpecification.hasPendingStatus(isPending, FriendRelationship.class))
-                .and(RelationshipSpecification.hasUserAndFullNameMatch(currentUserId, searchTerm, FriendRelationship.class));
-
-        List<FriendRelationship> relationships = friendRelationshipRepository.findAll(friendSpec);
-        List<RelationshipDto> dtos = relationships.stream().map(r -> {
-            RelationshipDto dto = relationshipMapper.toFriendRelationshipDto(r);
-            if (r.getReceiver().getId().equals(currentUserId)) {
-                dto.setReceiver(userMapper.toDto(r.getSender()));
-                return dto;
-            } else {
-                dto.setReceiver(userMapper.toDto(r.getReceiver()));
-                return dto;
-            }
-        }).toList();
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all friend relationship", dtos));
+        RelationshipStrategy strategy = relationshipStrategyContext.getStrategy(type);
+        List<RelationshipDto> dtos = strategy.getRelationships(currentUserId, searchTerm, isPending);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Relationships returned", dtos));
     }
 
     @Override

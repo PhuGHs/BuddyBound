@@ -40,17 +40,17 @@ public class User {
     private List<Member> members;
 
     @OneToMany(mappedBy = "user")
-    private List<UserSafeZone> userSafeZones;
+    private List<UserSafeZone> userSafeZones = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<UserImage> images;
+    private List<UserImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "sender")
-    private List<Relationship> forwardRelationships;
+    private List<Relationship> forwardRelationships = new ArrayList<>();
 
     @OneToMany(mappedBy = "receiver")
-    private List<Relationship> backwardRelationships;
+    private List<Relationship> backwardRelationships = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
-    private List<BlockedRelationship> blockedRelationships;
+    private List<BlockedRelationship> blockedRelationships = new ArrayList<>();
 }
