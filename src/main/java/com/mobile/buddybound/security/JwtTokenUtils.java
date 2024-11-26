@@ -14,8 +14,8 @@ import java.util.Objects;
 public class JwtTokenUtils {
     @Value("${jwt.secret}")
     private String SECRET_KEY;
-    private final long ACCESS_TOKEN_VALIDITY = 1000L * 60 * 15;
-    private final long REFRESH_TOKEN_VALIDITY = 1000L * 60 * 60 * 24 * 30;
+    private static final long ACCESS_TOKEN_VALIDITY = 1000L * 60 * 15;
+    private static final long REFRESH_TOKEN_VALIDITY = 1000L * 60 * 60 * 24 * 30;
 
     @Autowired
     private AccountSessionRepository accountSessionRepository;
@@ -32,7 +32,7 @@ public class JwtTokenUtils {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + validity * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + validity))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
     }

@@ -2,11 +2,19 @@ package com.mobile.buddybound.model.entity;
 
 import com.mobile.buddybound.model.enumeration.GroupType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 @Table(name = "chat_group")
 @Entity
+@AllArgsConstructor
+@Getter
+@NoArgsConstructor
+@Setter
 public class Group extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,6 +23,9 @@ public class Group extends BaseEntity {
 
     @Column(name = "group_name")
     private String groupName;
+
+    @Column(name = "group_description")
+    private String groupDescription;
 
     @ManyToOne
     @JoinColumn(name = "owner_id")

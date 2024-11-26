@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @Getter
@@ -15,7 +16,9 @@ import java.time.LocalDateTime;
 public class GroupDto {
     private Long id;
     private String groupName;
+    private String groupDescription;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt = LocalDateTime.now();
+    private List<Long> userIds;
     private GroupType groupType;
 }
