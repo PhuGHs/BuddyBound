@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.mapper;
 
+import com.mobile.buddybound.model.dto.BuddyGroupDto;
 import com.mobile.buddybound.model.dto.GroupDto;
 import com.mobile.buddybound.model.entity.Group;
 import org.mapstruct.Mapper;

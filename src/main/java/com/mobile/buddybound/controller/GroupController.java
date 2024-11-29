@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import com.mobile.buddybound.model.dto.GroupDto;
 import com.mobile.buddybound.model.dto.GroupMemberDto;
 import com.mobile.buddybound.model.dto.Views;
+import com.mobile.buddybound.model.enumeration.GroupType;
 import com.mobile.buddybound.service.GroupService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +61,11 @@ public class GroupController {
     @JsonView({Views.Read.class})
     public ResponseEntity<?> rejectMember(@RequestBody @JsonView(Views.Update.class) GroupMemberDto dto) {
         return groupService.kickMember(dto.getGroupId(), dto.getUserId());
+    }
+
+    @GetMapping("")
+    @JsonView(Views.Read.class)
+    public ResponseEntity<?> getUserGroups(@RequestParam(name = "groupType") GroupType groupType) {
+        return groupService.getUserGroups(groupType);
     }
 }

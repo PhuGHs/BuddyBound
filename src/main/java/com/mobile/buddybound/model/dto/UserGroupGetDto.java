@@ -1,5 +1,6 @@
 package com.mobile.buddybound.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
 
 import java.util.List;
@@ -10,7 +11,12 @@ import java.util.List;
 @Setter
 @Builder
 public class UserGroupGetDto {
-    private List<GroupDto> buddies;
+    @JsonView(Views.Read.class)
+    private List<BuddyGroupDto> buddies;
+
+    @JsonView(Views.Read.class)
     private List<GroupDto> families;
+
+    @JsonView(Views.Read.class)
     private List<GroupDto> friends;
 }

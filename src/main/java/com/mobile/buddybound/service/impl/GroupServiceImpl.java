@@ -2,10 +2,11 @@ package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
+import com.mobile.buddybound.model.dto.BuddyGroupDto;
 import com.mobile.buddybound.model.dto.GroupDto;
+import com.mobile.buddybound.model.dto.UserGroupGetDto;
 import com.mobile.buddybound.model.entity.Group;
 import com.mobile.buddybound.model.entity.Member;
-import com.mobile.buddybound.model.entity.User;
 import com.mobile.buddybound.model.enumeration.GroupType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
@@ -15,6 +16,7 @@ import com.mobile.buddybound.service.GroupService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.GroupMapper;
 import com.mobile.buddybound.service.mapper.MemberMapper;
+import com.mobile.buddybound.service.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -32,6 +34,7 @@ public class GroupServiceImpl implements GroupService {
     private final UserService userService;
     private final GroupMapper groupMapper;
     private final MemberMapper memberMapper;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
@@ -141,6 +144,25 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public ResponseEntity<?> getUserGroups(GroupType groupType) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
-        return ResponseEntity.ok("");
+        var buddies = groupRepository.findGroupsByUserAndGroupType(currentUserId, GroupType.ONE_TO_ONE).stream().map(group -> {
+            var user = group.getMembers().stream().filter(m -> m.getUser().getId().equals(currentUserId)).findFirst().orElseThrow(() -> new NotFoundException("member not found")).getUser();
+            return BuddyGroupDto.builder()
+                    .id(group.getId())
+                    .userDto(userMapper.toDto(user))
+                    .groupType(group.getGroupType())
+                    .updatedAt(group.getUpdatedAt())
+                    .build();
+        }).toList();
+        var families = groupRepository.findGroupsByUserAndGroupType(currentUserId, GroupType.FAMILY).stream().map(groupMapper::toDto).toList();
+        var friends = groupRepository.findGroupsByUserAndGroupType(currentUserId, GroupType.FRIEND).stream().map(groupMapper::toDto).toList();
+
+        var dto = UserGroupGetDto.builder()
+                .buddies(buddies)
+                .families(families)
+                .friends(friends)
+                .build();
+//        var groups = groupRepository.findGroupsByUserAndGroupType(currentUserId, groupType);
+
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user groups", dto));
     }
 }

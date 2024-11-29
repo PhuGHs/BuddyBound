@@ -15,5 +15,4 @@ public interface GroupService {
     ResponseEntity<?> kickMember(Long groupId, Long userId);
     ResponseEntity<?> approveMember(Long groupId, Long userId);
     ResponseEntity<?> getUserGroups(GroupType groupType);
-//    ResponseEntity<?> sendMessages();
 }
