@@ -42,6 +42,5 @@ public class MessageController {
             List<MultipartFile> images
     ) {
         return messageService.sendAMessage(dto, images);
-//        return ResponseEntity.ok("");
     }
 }

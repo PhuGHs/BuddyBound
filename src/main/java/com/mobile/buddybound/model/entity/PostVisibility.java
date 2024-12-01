@@ -1,9 +1,15 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "post_visibilities")
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class PostVisibility {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -39,5 +39,8 @@ public class Group extends BaseEntity {
     private List<Member> members;
 
     @OneToMany(mappedBy = "group")
+    private List<Post> posts;
+
+    @OneToMany(mappedBy = "group")
     private List<Message> messages;
 }

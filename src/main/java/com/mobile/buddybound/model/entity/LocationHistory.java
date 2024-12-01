@@ -1,6 +1,7 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "location_histories")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class LocationHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.model.dto.LocationDto;
 import com.mobile.buddybound.model.entity.LocationHistory;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
@@ -18,13 +19,13 @@ public class LocationHistoryServiceImpl implements LocationHistoryService {
     private LocationHistoryRepository locationHistoryRepository;
     private LocationHistoryMapper locationHistoryMapper;
     @Override
-    public ResponseEntity<ApiResponse> getUserLocationHistory(Long userId) {
+    public ResponseEntity<?> getUserLocationHistory(Long userId) {
         List<LocationHistory> locationList = locationHistoryRepository.findByUserId(userId);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all location history", locationList.stream().map(locationHistoryMapper::toDto)));
     }
 
     @Override
-    public ResponseEntity<ApiResponse> saveCurrentLocation() {
+    public ResponseEntity<?> saveCurrentLocation(LocationDto dto) {
         return null;
     }
 }
