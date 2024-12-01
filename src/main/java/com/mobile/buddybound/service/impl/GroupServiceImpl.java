@@ -145,7 +145,7 @@ public class GroupServiceImpl implements GroupService {
     public ResponseEntity<?> getUserGroups(GroupType groupType) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         var buddies = groupRepository.findGroupsByUserAndGroupType(currentUserId, GroupType.ONE_TO_ONE).stream().map(group -> {
-            var user = group.getMembers().stream().filter(m -> m.getUser().getId().equals(currentUserId)).findFirst().orElseThrow(() -> new NotFoundException("member not found")).getUser();
+            var user = group.getMembers().stream().filter(m -> !m.getUser().getId().equals(currentUserId)).findFirst().orElseThrow(() -> new NotFoundException("member not found")).getUser();
             return BuddyGroupDto.builder()
                     .id(group.getId())
                     .userDto(userMapper.toDto(user))
@@ -164,5 +164,17 @@ public class GroupServiceImpl implements GroupService {
 //        var groups = groupRepository.findGroupsByUserAndGroupType(currentUserId, groupType);
 
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user groups", dto));
+    }
+
+    @Override
+    public Group findGroupById(Long id) {
+        return groupRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Group not found"));
+    }
+
+    @Override
+    public Member findMemberByUserId(Long id, Long groupId) {
+        return memberRepository.getMemberByUser_IdAndGroup_Id(id, groupId)
+                .orElseThrow(() -> new NotFoundException("Member not found"));
     }
 }

@@ -1,6 +1,8 @@
 package com.mobile.buddybound.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,8 @@ public class MessageDto {
     private MemberDto member;
 
     @JsonView({ Views.Create.class, Views.Read.class })
+    @NotEmpty(message = "Content is required!")
+    @NotNull(message = "Content is required!")
     private String content;
 
     @JsonView(Views.Read.class)

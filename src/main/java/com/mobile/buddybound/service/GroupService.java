@@ -1,6 +1,8 @@
 package com.mobile.buddybound.service;
 
 import com.mobile.buddybound.model.dto.GroupDto;
+import com.mobile.buddybound.model.entity.Group;
+import com.mobile.buddybound.model.entity.Member;
 import com.mobile.buddybound.model.enumeration.GroupType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -15,4 +17,6 @@ public interface GroupService {
     ResponseEntity<?> kickMember(Long groupId, Long userId);
     ResponseEntity<?> approveMember(Long groupId, Long userId);
     ResponseEntity<?> getUserGroups(GroupType groupType);
+    Group findGroupById(Long id);
+    Member findMemberByUserId(Long id, Long groupId);
 }

@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.model.constants.ImageDirectory;
 import com.mobile.buddybound.service.ImageService;
 import io.imagekit.sdk.ImageKit;
 import io.imagekit.sdk.models.FileCreateRequest;
@@ -14,12 +15,14 @@ import java.util.Arrays;
 import java.util.Base64;
 
 @Component
+@RequiredArgsConstructor
 public class ImageServiceImpl implements ImageService  {
-    @Autowired
-    private ImageKit imageKit;
+    private final ImageKit imageKit;
+
+    private final static String baseFolder = "/uploads/buddy_bound";
 
     @Override
-    public String uploadImage(MultipartFile file) throws IOException {
+    public String uploadImage(MultipartFile file, String folder) throws IOException {
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
 
         FileCreateRequest fileCreateRequest = new FileCreateRequest(
@@ -29,7 +32,7 @@ public class ImageServiceImpl implements ImageService  {
 
         fileCreateRequest.setUseUniqueFileName(true);
         fileCreateRequest.setTags(Arrays.asList(new String[]{"BuddyBound"}));
-        fileCreateRequest.setFolder("/uploads/buddy_bound");
+        fileCreateRequest.setFolder(baseFolder.concat(folder));
 
         try {
             Result result = imageKit.upload(fileCreateRequest);
