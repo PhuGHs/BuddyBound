@@ -22,4 +22,9 @@ public class PostController {
     public ResponseEntity<?> createPost(@RequestPart("image") MultipartFile image, @RequestPart(name = "postData") PostCreateDto postData) {
         return postService.createPost(postData, image);
     }
+
+    @GetMapping("/get-all")
+    public ResponseEntity<?> getAllPosts(@RequestParam(name = "groupId") Long groupId) {
+        return ResponseEntity.ok("");
+    }
 }
