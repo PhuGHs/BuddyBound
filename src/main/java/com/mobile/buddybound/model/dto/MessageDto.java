@@ -24,7 +24,7 @@ public class MessageDto {
     private Long senderId;
 
     @JsonView(Views.Read.class)
-    private MemberDto member;
+    private MemberPostDto member;
 
     @JsonView({ Views.Create.class, Views.Read.class })
     @NotEmpty(message = "Content is required!")

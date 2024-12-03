@@ -5,7 +5,11 @@ import com.mobile.buddybound.model.dto.PostDto;
 import com.mobile.buddybound.model.entity.Post;
 import com.mobile.buddybound.service.PostService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +28,7 @@ public class PostController {
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<?> getAllPosts(@RequestParam(name = "groupId") Long groupId) {
-        return ResponseEntity.ok("");
+    public ResponseEntity<?> getAllPosts(@RequestParam(name = "groupId") @NotNull Long groupId, @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return postService.getAllPosts(groupId, pageable);
     }
 }

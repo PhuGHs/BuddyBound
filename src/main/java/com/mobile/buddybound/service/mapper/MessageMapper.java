@@ -16,4 +16,8 @@ public interface MessageMapper extends EntityMapper<Message, MessageDto> {
 
     @Mapping(target = "group", expression = "java(groupService.findGroupById(dto.getGroupId()))")
     Message toEntityOther(MessagePostDto dto, @Context GroupService groupService);
+
+    @Override
+    @Mapping(source = "group.id", target = "groupId")
+    MessageDto toDto(Message message);
 }

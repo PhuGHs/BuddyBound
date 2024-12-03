@@ -14,6 +14,8 @@ import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.LocationHistoryMapper;
 import com.mobile.buddybound.service.mapper.PostMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -101,4 +103,12 @@ public class PostServiceImpl implements PostService {
 
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "created post", postMapper.toDto(post)));
     }
+
+    @Override
+    public ResponseEntity<?> getAllPosts(Long groupId, Pageable pageable) {
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+        Page<PostDto> posts = postRepository.getViewablePostsInGroup(groupId, currentUserId, pageable).map(postMapper::toDto);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get all posts", posts));
+    }
+
 }

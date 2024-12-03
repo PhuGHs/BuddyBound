@@ -1,0 +1,10 @@
+Tính năng:
+
+Send/Delete message
+Undo trong 5 phút
+Lưu lịch sử commands
+Dễ mở rộng (edit, react...)
+
+sử dụng Command Pattern cho chức năng chat (có thể nhắn, xóa, revert lại trong 5p, ... )
+
+

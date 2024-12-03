@@ -26,13 +26,13 @@ public class PostDto {
     private boolean isExpired = false;
 
     @JsonView(Views.Read.class)
-    private MemberDto member;
+    private MemberPostDto member;
 
     @JsonView(Views.Read.class)
     private LocationHistoryDto location;
 
     @JsonView(Views.Read.class)
-    private List<PostVisibilityDto> postVisibilities;
+    private List<PostVisibilityGetDto> postVisibilities;
 
     @JsonView(Views.Read.class)
     private LocalDateTime createdAt = LocalDateTime.now();

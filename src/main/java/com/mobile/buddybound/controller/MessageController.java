@@ -14,6 +14,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.*;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,7 +32,7 @@ public class MessageController {
 
     @GetMapping("/get-group-messages/{groupId}")
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> getGroupMessages(@PathVariable Long groupId, Pageable pageable) {
+    public ResponseEntity<?> getGroupMessages(@PathVariable Long groupId, @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return messageService.getAllGroupMessages(groupId, pageable);
     }
 
