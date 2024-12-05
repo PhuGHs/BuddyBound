@@ -53,4 +53,7 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<BlockedRelationship> blockedRelationships = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<MemorableDestination> memorableDestinations = new ArrayList<>();
 }

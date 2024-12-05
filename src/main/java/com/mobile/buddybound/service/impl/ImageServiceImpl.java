@@ -6,13 +6,14 @@ import io.imagekit.sdk.ImageKit;
 import io.imagekit.sdk.models.FileCreateRequest;
 import io.imagekit.sdk.models.results.Result;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @RequiredArgsConstructor
@@ -22,7 +23,8 @@ public class ImageServiceImpl implements ImageService  {
     private final static String baseFolder = "/uploads/buddy_bound";
 
     @Override
-    public String uploadImage(MultipartFile file, String folder) throws IOException {
+    @Async
+    public CompletableFuture<String> uploadImage(MultipartFile file, String folder) throws IOException {
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
 
         FileCreateRequest fileCreateRequest = new FileCreateRequest(
@@ -36,9 +38,9 @@ public class ImageServiceImpl implements ImageService  {
 
         try {
             Result result = imageKit.upload(fileCreateRequest);
-            return result.getUrl();
+            return CompletableFuture.completedFuture(result.getUrl());
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to upload image: " + ex.getMessage());
+            return CompletableFuture.failedFuture(new RuntimeException("Failed to upload image: " + ex.getMessage()));
         }
     }
 }

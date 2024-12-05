@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LocationHistory {
+public class LocationHistory extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -35,8 +35,4 @@ public class LocationHistory {
 
     @OneToMany(mappedBy = "location")
     private List<MemorableDestination> memorableDestinations;
-
-    @CreatedDate
-    @Column(name = "createdAt")
-    private LocalDateTime createdAt;
 }

@@ -67,7 +67,6 @@ public class PostServiceImpl implements PostService {
                 .user(user)
                 .latitude(dto.getLocation().getLatitude())
                 .longitude(dto.getLocation().getLongitude())
-                .createdAt(LocalDateTime.now())
                 .build();
 
         Post post = Post.builder()
@@ -79,10 +78,17 @@ public class PostServiceImpl implements PostService {
                 .build();
 
         try {
-            Image createdImage = Image.builder()
-                    .imageUrl(imageService.uploadImage(image, baseUrl))
-                    .build();
-            post.setImage(createdImage);
+            Post finalPost1 = post;
+            imageService.uploadImage(image, baseUrl)
+                    .thenAccept(url -> {
+                        Image createdImage = Image.builder()
+                                .imageUrl(url)
+                                .build();
+                        finalPost1.setImage(createdImage);
+                    })
+                    .exceptionally(ex -> {
+                        return null;
+                    });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
