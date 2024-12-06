@@ -19,21 +19,33 @@ import org.springframework.web.bind.annotation.*;
 @SecurityRequirement(name = "bearerAuth")
 public class MemorableDestinationController {
     private final MemorableDestinationService memorableDestinationService;
-    @GetMapping()
+    @GetMapping("/get-nearby")
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> getMemorableDestination(@RequestParam Double latitude, @RequestParam Double longitude, @RequestParam MemorableDestinationType type) {
+    public ResponseEntity<?> getMemorableDestination(@RequestParam Double latitude, @RequestParam Double longitude, @RequestParam(required = false) MemorableDestinationType type) {
         return memorableDestinationService.getNearbyDestinations(latitude, longitude, type);
     }
 
-    @PostMapping()
+    @GetMapping
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> createDestination(@JsonView(Views.Create.class) @RequestBody @Valid MemorableDestinationDto dto) {
+    public ResponseEntity<?> getAll(@RequestParam(required = false) MemorableDestinationType type) {
+        return memorableDestinationService.getAllDestinations(type);
+    }
+
+    @PostMapping
+    @JsonView(Views.Read.class)
+    public ResponseEntity<?> createDestination(@JsonView({Views.Create.class}) @RequestBody MemorableDestinationDto dto) {
         return memorableDestinationService.createDestination(dto);
     }
 
-    @DeleteMapping("")
+    @PutMapping
+    @JsonView(Views.Update.class)
+    public ResponseEntity<?> updateDestination(@JsonView({Views.Update.class}) @Valid @RequestBody MemorableDestinationDto dto) {
+        return memorableDestinationService.updateDestination(dto);
+    }
+
+    @DeleteMapping
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> deleteDestination(@RequestParam @NotNull Long id) {
-        return memorableDestinationService.deleteDestination(id);
+    public ResponseEntity<?> deleteDestination(@RequestParam Long destinationId) {
+        return memorableDestinationService.deleteDestination(destinationId);
     }
 }

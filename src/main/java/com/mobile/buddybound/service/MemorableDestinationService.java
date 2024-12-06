@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface MemorableDestinationService {
     ResponseEntity<?> createDestination(MemorableDestinationDto memorableDestinationDto);
+    ResponseEntity<?> updateDestination(MemorableDestinationDto memorableDestinationDto);
     ResponseEntity<?> deleteDestination(Long id);
     ResponseEntity<?> getAllDestinations(MemorableDestinationType type);
     ResponseEntity<?> getNearbyDestinations(Double latitude, Double longitude, MemorableDestinationType type);

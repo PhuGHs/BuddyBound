@@ -2,6 +2,7 @@ package com.mobile.buddybound.repository;
 
 import com.mobile.buddybound.model.entity.MemorableDestination;
 import com.mobile.buddybound.model.enumeration.MemorableDestinationType;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,9 +22,14 @@ public interface MemorableDestinationRepository extends JpaRepository<MemorableD
                 SIN(RADIANS(:latitude)) * SIN(RADIANS(lh.latitude))
             ) <= 5
         AND md.locationType = :locationType
+        AND md.user.id = :userId
         """)
     List<MemorableDestination> findNearbyDestinationsByType(
+            @Param("userId") Long userId,
             @Param("latitude") double latitude,
             @Param("longitude") double longitude,
             @Param("locationType") MemorableDestinationType locationType);
+
+    List<MemorableDestination> getAllByUser_IdAndLocationType(Long userId, MemorableDestinationType type);
+    List<MemorableDestination> getAllByUser_Id(Long userId);
 }

@@ -1,7 +1,7 @@
 Tính năng:
 
 Send/Delete message
-Undo trong 5 phút
+Undo trong (nếu không quá 5 phút từ khi nó được gửi)
 Lưu lịch sử commands
 Dễ mở rộng (edit, react...)
 

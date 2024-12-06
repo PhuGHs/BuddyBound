@@ -12,9 +12,12 @@ import com.mobile.buddybound.service.MemorableDestinationService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.MemorableDestinationMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -37,6 +40,21 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
 
     @Override
     @Transactional
+    public ResponseEntity<?> updateDestination(MemorableDestinationDto memorableDestinationDto) {
+        var currentUser = userService.getCurrentLoggedInUser();
+        var destination = currentUser.getMemorableDestinations().stream().filter(d -> d.getId().equals(memorableDestinationDto.getId())).findFirst();
+        if (destination.isEmpty()) {
+            throw new NotFoundException("Can't find the destination");
+        }
+        MemorableDestination destinationEntity = destination.get();
+        destinationEntity.setNote(memorableDestinationDto.getNote());
+        destinationEntity.setLocationType(memorableDestinationDto.getLocationType());
+        destinationEntity = memorableDestinationRepository.save(destinationEntity);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "update destination", memorableDestinationMapper.toDto(destinationEntity)));
+    }
+
+    @Override
+    @Transactional
     public ResponseEntity<?> deleteDestination(Long id) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         var destination = memorableDestinationRepository.findById(id)
@@ -50,12 +68,26 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
 
     @Override
     public ResponseEntity<?> getAllDestinations(MemorableDestinationType type) {
-        var currentUser = userService.getCurrentLoggedInUser();
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all", currentUser.getMemorableDestinations().stream().map(memorableDestinationMapper::toDto)));
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+
+        List<MemorableDestination> destinations = (type != null)
+                ? memorableDestinationRepository.getAllByUser_IdAndLocationType(currentUserId, type)
+                : memorableDestinationRepository.getAllByUser_Id(currentUserId);
+
+        List<MemorableDestinationDto> dtoList = destinations.stream()
+                .map(memorableDestinationMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all", dtoList));
     }
 
     @Override
     public ResponseEntity<?> getNearbyDestinations(Double latitude, Double longitude, MemorableDestinationType type) {
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get nearby locations", memorableDestinationRepository.findNearbyDestinationsByType(latitude, longitude, type)));
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+        List<MemorableDestinationDto> dtoList = memorableDestinationRepository.findNearbyDestinationsByType(currentUserId, latitude, longitude, type)
+                .stream()
+                .map(memorableDestinationMapper::toDto)
+                .toList();
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get nearby locations", dtoList));
     }
 }
