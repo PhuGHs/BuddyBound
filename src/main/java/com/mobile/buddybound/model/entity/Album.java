@@ -1,11 +1,18 @@
 package com.mobile.buddybound.model.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Table(name = "albums")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Album extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -13,12 +20,6 @@ public class Album extends BaseEntity {
 
     @Column(name = "title", nullable = false)
     private String title;
-
-    @Column(name = "month")
-    private int month;
-
-    @Column(name = "year")
-    private int year;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -30,5 +31,5 @@ public class Album extends BaseEntity {
             joinColumns = @JoinColumn(name = "album_id"),
             inverseJoinColumns = @JoinColumn(name = "post_id")
     )
-    private Set<Post> posts;
+    private List<Post> posts;
 }

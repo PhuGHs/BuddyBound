@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @RequiredArgsConstructor
@@ -77,20 +78,9 @@ public class PostServiceImpl implements PostService {
                 .isExpired(false)
                 .build();
 
-        try {
-            Post finalPost1 = post;
-            imageService.uploadImage(image, baseUrl)
-                    .thenAccept(url -> {
-                        Image createdImage = Image.builder()
-                                .imageUrl(url)
-                                .build();
-                        finalPost1.setImage(createdImage);
-                    })
-                    .exceptionally(ex -> {
-                        return null;
-                    });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (Objects.nonNull(image)) {
+            CompletableFuture<Image> imageFuture = CompletableFuture.supplyAsync(() -> imageService.uploadImageAsync(image, baseUrl));
+            post.setImage(Image.builder().imageUrl(imageFuture.join().getImageUrl()).build());
         }
 
         Post finalPost = post;
@@ -117,4 +107,9 @@ public class PostServiceImpl implements PostService {
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get all posts", posts));
     }
 
+    @Override
+    public Post getPost(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("Post not found"));
+    }
 }

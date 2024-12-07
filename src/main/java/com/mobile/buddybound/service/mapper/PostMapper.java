@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface PostMapper extends EntityMapper<Post, PostDto> {
     @Override
     @Mapping(target = "commentCount", expression = "java(post.getComments() != null ? post.getComments().size() : 0)")
+    @Mapping(source = "expired", target = "isExpired")
     PostDto toDto(Post post);
 
     Post toEntity(PostCreateDto postCreateDto);

@@ -1,11 +1,13 @@
 package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.model.constants.ImageDirectory;
+import com.mobile.buddybound.model.entity.Image;
 import com.mobile.buddybound.service.ImageService;
 import io.imagekit.sdk.ImageKit;
 import io.imagekit.sdk.models.FileCreateRequest;
 import io.imagekit.sdk.models.results.Result;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ImageServiceImpl implements ImageService  {
     private final ImageKit imageKit;
 
@@ -41,6 +44,18 @@ public class ImageServiceImpl implements ImageService  {
             return CompletableFuture.completedFuture(result.getUrl());
         } catch (Exception ex) {
             return CompletableFuture.failedFuture(new RuntimeException("Failed to upload image: " + ex.getMessage()));
+        }
+    }
+
+    @Override
+    public Image uploadImageAsync(MultipartFile file, String baseUrl) {
+        try {
+            return Image.builder()
+                    .imageUrl(this.uploadImage(file, baseUrl).join())
+                    .build();
+        } catch (Exception e) {
+            log.error("Error uploading image: {}", e.getMessage());
+            return null;
         }
     }
 }

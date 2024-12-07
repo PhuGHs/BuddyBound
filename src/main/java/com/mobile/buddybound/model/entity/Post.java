@@ -24,7 +24,7 @@ public class Post extends BaseEntity {
     private String note;
 
     @Column(name = "is_expired")
-    private boolean isExpired = false;
+    private boolean isExpired;
 
     @ManyToOne
     @JoinColumn(name = "member_id")

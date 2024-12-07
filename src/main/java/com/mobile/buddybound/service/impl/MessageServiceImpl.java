@@ -58,7 +58,7 @@ public class MessageServiceImpl implements MessageService {
         if (images != null && !images.isEmpty()) {
             // Use parallel stream to handle image uploads concurrently
             List<CompletableFuture<Image>> imageFutures = images.stream()
-                    .map(file -> CompletableFuture.supplyAsync(() -> uploadImageAsync(file))).toList();
+                    .map(file -> CompletableFuture.supplyAsync(() -> imageService.uploadImageAsync(file, baseUrl))).toList();
 
             // Collect all the uploaded images
             List<Image> messageImages = imageFutures.stream()
@@ -86,17 +86,6 @@ public class MessageServiceImpl implements MessageService {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         if (!memberRepository.existsByUser_IdAndGroup_Id(currentUserId, groupId)) {
             throw new NotFoundException("Can't get group messages because the you are not in the group");
-        }
-    }
-
-    private Image uploadImageAsync(MultipartFile file) {
-        try {
-            return Image.builder()
-                    .imageUrl(imageService.uploadImage(file, baseUrl).join())
-                    .build();
-        } catch (Exception e) {
-            log.error("Error uploading image: {}", e.getMessage());
-            return null;
         }
     }
 }

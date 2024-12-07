@@ -1,5 +1,6 @@
 package com.mobile.buddybound.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.mobile.buddybound.model.entity.Comment;
 import lombok.*;
@@ -23,7 +24,8 @@ public class PostDto {
     private ImageDto image;
 
     @JsonView(Views.Read.class)
-    private boolean isExpired = false;
+    @JsonProperty("isExpired")
+    private boolean isExpired;
 
     @JsonView(Views.Read.class)
     private MemberPostDto member;
