@@ -13,4 +13,6 @@ public interface AuthService {
     ResponseEntity<ApiResponse> register(RegisterDto registerDto);
     ResponseEntity<AuthResponse> login(LoginDto loginDto);
     ResponseEntity<ApiResponse> refresh(String refreshToken);
+    ResponseEntity<?> forgotPassword(String email);
+    ResponseEntity<?> verify(String code);
 }

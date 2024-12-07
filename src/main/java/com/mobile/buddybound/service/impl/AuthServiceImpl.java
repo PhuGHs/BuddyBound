@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.LoginDto;
 import com.mobile.buddybound.model.dto.RegisterDto;
@@ -10,6 +11,7 @@ import com.mobile.buddybound.model.response.AuthResponse;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.security.JwtTokenUtils;
 import com.mobile.buddybound.service.AuthService;
+import com.mobile.buddybound.service.MailService;
 import com.mobile.buddybound.service.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -38,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountMapper accountMapper;
     private final UserRepository userRepository;
     private final UserImageRepository userImageRepository;
+    private final MailService mailService;
     private final JwtTokenUtils jwtTokenUtils;
     private final static String maleAvatarUrl = "https://ik.imagekit.io/apwerlhez/5.png?updatedAt=1732544514448";
     private final static String femaleAvatarUrl = "https://ik.imagekit.io/apwerlhez/2.png?updatedAt=1732544514560";
@@ -137,5 +140,20 @@ public class AuthServiceImpl implements AuthService {
             return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.FAIL, "Refresh token is expired", ""));
         }
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.FAIL, "Refresh token invalid", ""));
+    }
+
+    @Override
+    public ResponseEntity<?> forgotPassword(String email) {
+        Account account = accountRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Account is not found"));
+        mailService.sendOtpEmail(email, account.getUser().getFullName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<?> verify(String code) {
+        if (accountRepository.existsByVerificationCode(code)) {
+            throw new BadRequestException("Mismatch verification code");
+        }
+        return ResponseEntity.noContent().build();
     }
 }

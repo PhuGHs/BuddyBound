@@ -9,6 +9,13 @@ spring:
   application:
     name: BuddyBound
 
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false # Set to true in production
+
   datasource:
     username: ${DB_USERNAME:root}
     password: ${DB_PW:123456}
@@ -48,6 +55,9 @@ spring:
           auth: true
           starttls:
             enabled: true
+            required: true
+    protocol: smtp
+    default-encoding: UTF-8
 
   session:
     timeout: 1800
