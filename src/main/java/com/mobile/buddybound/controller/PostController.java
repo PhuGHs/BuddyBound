@@ -31,4 +31,9 @@ public class PostController {
     public ResponseEntity<?> getAllPosts(@RequestParam(name = "groupId") @NotNull Long groupId, @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return postService.getAllPosts(groupId, pageable);
     }
+
+    @GetMapping("/get-detail")
+    public ResponseEntity<?> getPostDetails(@RequestParam(name = "postId") @NotNull(message = "The postId is required") Long postId) {
+        return postService.getPostDetail(postId);
+    }
 }

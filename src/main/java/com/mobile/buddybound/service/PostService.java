@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public interface PostService {
     ResponseEntity<?> createPost(PostCreateDto dto, MultipartFile image);
+    ResponseEntity<?> getPostDetail(Long id);
     ResponseEntity<?> getAllPosts(Long groupId, Pageable pageable);
     Post getPost(Long postId);
 }

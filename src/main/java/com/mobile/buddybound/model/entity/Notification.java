@@ -1,26 +1,36 @@
 package com.mobile.buddybound.model.entity;
 
+import com.mobile.buddybound.model.enumeration.NotificationType;
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "notifications")
-public class Notification extends BaseEntity {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "notification_type", discriminatorType = DiscriminatorType.STRING)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+public abstract class Notification extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    protected Long id;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id")
-    private User sender;
-
+    @JoinColumn(name = "recipient_id", nullable = false)
+    protected User recipient;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_id")
-    private User receiver;
+    @JoinColumn(name = "sender_id", nullable = false)
+    protected User sender;
 
-    @Column(name = "message")
-    private String message;
+    protected Long referenceId;
+    protected boolean isRead;
 
-    @Column(name = "notification_type")
-    private String notificationType;
+    @Column(insertable = false, updatable = false, name = "notification_type")
+    @Enumerated(EnumType.STRING)
+    protected NotificationType notificationType;
+
+    public abstract String getMessage();
 }

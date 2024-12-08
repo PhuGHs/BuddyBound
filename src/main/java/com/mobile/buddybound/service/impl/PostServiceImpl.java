@@ -1,12 +1,19 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.exception.BadRequestException;
+import com.mobile.buddybound.exception.CustomAccessDeniedHandler;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.constants.ImageDirectory;
+import com.mobile.buddybound.model.dto.AccessRequest;
 import com.mobile.buddybound.model.dto.PostCreateDto;
 import com.mobile.buddybound.model.dto.PostDto;
 import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
+import com.mobile.buddybound.pattern.CoR.GroupPermissionHandler;
+import com.mobile.buddybound.pattern.CoR.PermissionHandler;
+import com.mobile.buddybound.pattern.CoR.PostVisibilityHandler;
+import com.mobile.buddybound.pattern.CoR.RelationshipHandler;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.service.ImageService;
 import com.mobile.buddybound.service.PostService;
@@ -35,6 +42,7 @@ public class PostServiceImpl implements PostService {
     private final ImageService imageService;
     private final PostMapper postMapper;
     private final MemberRepository memberRepository;
+    private final PostVisibilityRepository postVisibilityRepository;
     private final UserService userService;
     private final GroupRepository groupRepository;
     private final static String baseUrl = ImageDirectory.POST_PREFIX;
@@ -101,6 +109,23 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public ResponseEntity<?> getPostDetail(Long id) {
+        Long currentUserId = userService.getCurrentLoggedInUser().getId();
+        Post post = this.getPost(id);
+        PermissionHandler permissionHandler = this.createPermissionChain();
+        AccessRequest request = AccessRequest.builder()
+                .postId(post.getId())
+                .ownerId(post.getMember().getUser().getId())
+                .groupId(post.getGroup().getId())
+                .viewerId(currentUserId)
+                .build();
+        if (!permissionHandler.checkAccess(request)) {
+            throw new BadRequestException("You are not permitted to access this resource");
+        }
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get post", postMapper.toDto(post)));
+    }
+
+    @Override
     public ResponseEntity<?> getAllPosts(Long groupId, Pageable pageable) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         Page<PostDto> posts = postRepository.getViewablePostsInGroup(groupId, currentUserId, pageable).map(postMapper::toDto);
@@ -111,5 +136,16 @@ public class PostServiceImpl implements PostService {
     public Post getPost(Long postId) {
         return postRepository.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post not found"));
+    }
+
+    private PermissionHandler createPermissionChain() {
+        RelationshipHandler relationshipHandler = new RelationshipHandler(userService);
+        GroupPermissionHandler groupPermissionHandler = new GroupPermissionHandler(memberRepository);
+        PostVisibilityHandler postVisibilityHandler = new PostVisibilityHandler(postVisibilityRepository);
+
+        relationshipHandler.setNext(groupPermissionHandler);
+        groupPermissionHandler.setNext(postVisibilityHandler);
+
+        return relationshipHandler;
     }
 }

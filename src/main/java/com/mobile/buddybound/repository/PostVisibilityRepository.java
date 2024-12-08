@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PostVisibilityRepository extends JpaRepository<PostVisibility, Long> {
+    boolean existsByPost_IdAndMember_User_Id(Long postId, Long userId);
 }
