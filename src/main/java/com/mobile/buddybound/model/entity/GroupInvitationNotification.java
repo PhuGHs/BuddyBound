@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("GROUP_INVITATION")
@@ -11,9 +12,9 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class GroupInvitationNotification extends Notification {
-    @Column(name = "group_name", nullable = false)
+    @Column(name = "group_name")
     private String groupName;
 
     @Column(name = "group_avatar")

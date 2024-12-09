@@ -5,20 +5,23 @@ import com.mobile.buddybound.exception.CustomAccessDeniedHandler;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.constants.ImageDirectory;
 import com.mobile.buddybound.model.dto.AccessRequest;
+import com.mobile.buddybound.model.dto.NotificationData;
 import com.mobile.buddybound.model.dto.PostCreateDto;
 import com.mobile.buddybound.model.dto.PostDto;
 import com.mobile.buddybound.model.entity.*;
+import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.CoR.GroupPermissionHandler;
 import com.mobile.buddybound.pattern.CoR.PermissionHandler;
 import com.mobile.buddybound.pattern.CoR.PostVisibilityHandler;
 import com.mobile.buddybound.pattern.CoR.RelationshipHandler;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.service.ImageService;
 import com.mobile.buddybound.service.PostService;
 import com.mobile.buddybound.service.UserService;
-import com.mobile.buddybound.service.mapper.LocationHistoryMapper;
 import com.mobile.buddybound.service.mapper.PostMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +34,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -45,6 +50,7 @@ public class PostServiceImpl implements PostService {
     private final PostVisibilityRepository postVisibilityRepository;
     private final UserService userService;
     private final GroupRepository groupRepository;
+    private final NotificationFactoryProvider factoryProvider;
     private final static String baseUrl = ImageDirectory.POST_PREFIX;
 
     @Scheduled(fixedRate = 60000) // Runs every minute
@@ -70,7 +76,8 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new NotFoundException("Member not found"));
         var group = groupRepository.findById(dto.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Group not found"));
-        dto.getViewerIds().add(member.getId());
+        List<Long> newIds = new ArrayList<>(dto.getViewerIds());
+        newIds.add(currentUserId);
 
         LocationHistory location = LocationHistory.builder()
                 .user(user)
@@ -92,7 +99,7 @@ public class PostServiceImpl implements PostService {
         }
 
         Post finalPost = post;
-        List<PostVisibility> viewers = dto.getViewerIds().stream()
+        List<PostVisibility> viewers = newIds.stream()
                 .map(memberId -> {
                     Member viewer = memberRepository.findById(memberId).
                             orElseThrow(() -> new NotFoundException("Member not found"));
@@ -104,6 +111,20 @@ public class PostServiceImpl implements PostService {
 
         post.setPostVisibilities(viewers);
         post = postRepository.save(post);
+
+        //send notification
+        NotificationFactory factory = factoryProvider.getFactory(NotificationType.GROUP_POST);
+        for (Long id : dto.getViewerIds()) {
+            NotificationData data = NotificationData.builder()
+                    .senderId(currentUserId)
+                    .recipientId(id)
+                    .referenceId(post.getId())
+                    .postTitle(post.getNote())
+                    .groupName(post.getGroup().getGroupName())
+                    .build();
+
+            factory.createNotification(NotificationType.GROUP_POST, data);
+        }
 
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "created post", postMapper.toDto(post)));
     }

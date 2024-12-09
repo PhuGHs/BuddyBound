@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("COMMENT")
@@ -12,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class CommentNotification extends Notification {
     @Column(name = "comment_content")
     private String commentContent;

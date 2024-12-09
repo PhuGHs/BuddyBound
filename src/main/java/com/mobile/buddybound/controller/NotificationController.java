@@ -1,15 +1,21 @@
 package com.mobile.buddybound.controller;
 
 import com.mobile.buddybound.model.enumeration.NotificationType;
+import com.mobile.buddybound.service.NotificationService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("${api.prefix}/notifications")
+@RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class NotificationController {
+    private final NotificationService notificationService;
     @GetMapping
-    public ResponseEntity<?> getNotifications(@RequestParam(value = "type", required = false) NotificationType type) {
-        return ResponseEntity.ok("");
+    public ResponseEntity<?> getNotifications() {
+        return notificationService.getNotifications();
     }
 
     @PutMapping("/mark-all-as-read")
@@ -24,6 +30,6 @@ public class NotificationController {
 
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId) {
-        return ResponseEntity.ok("");
+        return notificationService.deleteNotification(notificationId);
     }
 }

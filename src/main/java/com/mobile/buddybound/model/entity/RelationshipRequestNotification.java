@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("RELATIONSHIP_REQUEST")
@@ -11,9 +12,9 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class RelationshipRequestNotification extends Notification {
-    @Column(name = "requestor_name", nullable = false)
+    @Column(name = "requestor_name")
     private String requestorName;
 
     @Column(name = "is_accepted")

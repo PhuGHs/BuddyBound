@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @DiscriminatorValue("GROUP_POST")
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class GroupPostNotification extends Notification {
     @Column(name = "group_name")
     private String groupName;

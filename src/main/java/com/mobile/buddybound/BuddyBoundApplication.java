@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -16,6 +17,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 @EnableScheduling
 @EnableAsync
 @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
+@EnableJpaAuditing
 public class BuddyBoundApplication {
 
     public static void main(String[] args) {
