@@ -4,18 +4,23 @@ import com.mobile.buddybound.controller.validation.RelationshipValidator;
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.BlockedRelationshipDto;
+import com.mobile.buddybound.model.dto.NotificationData;
 import com.mobile.buddybound.model.dto.RelationshipDto;
 import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.enumeration.FamilyType;
+import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.enumeration.RelationshipType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.abstract_factory.FamilyRelationshipFactory;
 import com.mobile.buddybound.pattern.abstract_factory.FriendRelationshipFactory;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.pattern.strategy.relationship_strategy.RelationshipStrategy;
 import com.mobile.buddybound.pattern.strategy.relationship_strategy.RelationshipStrategyContext;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.repository.specification.RelationshipSpecification;
+import com.mobile.buddybound.service.NotificationService;
 import com.mobile.buddybound.service.RelationshipService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.BlockedRelationshipMapper;
@@ -45,6 +50,7 @@ public class RelationshipServiceImpl implements RelationshipService {
     private final BlockedRelationshipMapper blockedRelationshipMapper;
     private final BlockedRelationshipRepository blockedRelationshipRepository;
     private final RelationshipStrategyContext relationshipStrategyContext;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -75,8 +81,17 @@ public class RelationshipServiceImpl implements RelationshipService {
             relationship.setSender(sender);
         }
 
-        //add notification here
         Relationship savedOne = relationshipRepository.save(relationship);
+
+        //send notification
+        NotificationData data = NotificationData.builder()
+                .senderId(sender.getId())
+                .recipientId(dto.getReceiverId())
+                .referenceId(savedOne.getId())
+                .requesterName(savedOne.getReceiver().getFullName())
+                .build();
+        notificationService.sendNotification(NotificationType.RELATIONSHIP_REQUEST, data);
+
         Object returnObject = !this.isFamily(dto.getRelationshipType()) ? relationshipMapper.toFriendRelationshipDto((FriendRelationship) savedOne) : relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) savedOne);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "add Relationship", returnObject));
     }

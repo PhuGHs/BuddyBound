@@ -1,9 +1,14 @@
 package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.NotFoundException;
+import com.mobile.buddybound.model.dto.NotificationData;
 import com.mobile.buddybound.model.dto.NotificationDto;
+import com.mobile.buddybound.model.entity.Notification;
+import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
+import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.NotificationRepository;
 import com.mobile.buddybound.service.NotificationService;
 import com.mobile.buddybound.service.UserService;
@@ -22,11 +27,12 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserService userService;
     private final NotificationMapper notificationMapper;
+    private final NotificationFactoryProvider factoryProvider;
 
     @Override
     public ResponseEntity<?> getNotifications() {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
-        List<NotificationDto> dtoList = notificationRepository.findNotificationBySender_IdOrRecipient_IdOrderByCreatedAtDesc(currentUserId, currentUserId)
+        List<NotificationDto> dtoList = notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
                 .stream()
                 .map(t -> switch (t.getNotificationType()) {
                     case COMMENT -> notificationMapper.toCommentNotificationDto(t);
@@ -40,12 +46,23 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public ResponseEntity<?> markAllAsRead() {
-        return null;
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+        List<Notification> notifications = notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
+                .stream()
+                .map(n -> {
+                    n.setRead(true);
+                    return n;
+                }).toList();
+        notificationRepository.saveAll(notifications);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     public ResponseEntity<?> markAsRead(Long notificationId) {
-        return null;
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new NotFoundException("Notification not found"));
+        notification.setRead(true);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
@@ -55,5 +72,12 @@ public class NotificationServiceImpl implements NotificationService {
         }
         notificationRepository.deleteById(notificationId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public void sendNotification(NotificationType type, NotificationData data) {
+        NotificationFactory factory = factoryProvider.getFactory(type);
+        factory.createNotification(type, data);
+        //add websocket here
     }
 }

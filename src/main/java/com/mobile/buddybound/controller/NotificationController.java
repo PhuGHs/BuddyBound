@@ -20,12 +20,12 @@ public class NotificationController {
 
     @PutMapping("/mark-all-as-read")
     public ResponseEntity<?> markAllAsRead() {
-        return ResponseEntity.ok("");
+        return notificationService.markAllAsRead();
     }
 
     @PutMapping("/{notificationId}")
     public ResponseEntity<?> markAsRead(@PathVariable Long notificationId) {
-        return ResponseEntity.ok("");
+        return notificationService.markAsRead(notificationId);
     }
 
     @DeleteMapping("/{notificationId}")

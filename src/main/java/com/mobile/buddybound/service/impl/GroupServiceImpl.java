@@ -4,15 +4,18 @@ import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.BuddyGroupDto;
 import com.mobile.buddybound.model.dto.GroupDto;
+import com.mobile.buddybound.model.dto.NotificationData;
 import com.mobile.buddybound.model.dto.UserGroupGetDto;
 import com.mobile.buddybound.model.entity.Group;
 import com.mobile.buddybound.model.entity.Member;
 import com.mobile.buddybound.model.enumeration.GroupType;
+import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.repository.GroupRepository;
 import com.mobile.buddybound.repository.MemberRepository;
 import com.mobile.buddybound.service.GroupService;
+import com.mobile.buddybound.service.NotificationService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.GroupMapper;
 import com.mobile.buddybound.service.mapper.MemberMapper;
@@ -35,6 +38,7 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMapper groupMapper;
     private final MemberMapper memberMapper;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -62,7 +66,17 @@ public class GroupServiceImpl implements GroupService {
                 .isAdmin(!dto.getGroupType().equals(GroupType.ONE_TO_ONE) && userId.equals(currentUserId))
                 .joinDate(LocalDateTime.now())
                 .build()).toList();
-        memberRepository.saveAll(members);
+        members = memberRepository.saveAll(members);
+        var groupId = members.get(0).getGroup().getId();
+        for (Long id : dto.getUserIds()) {
+            NotificationData data = NotificationData.builder()
+                    .senderId(currentUserId)
+                    .recipientId(id)
+                    .groupName(group.getGroupName())
+                    .referenceId(groupId)
+                    .build();
+            notificationService.sendNotification(NotificationType.GROUP_INVITATION, data);
+        }
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Created new group", groupMapper.toDto(group)));
     }
 
@@ -91,7 +105,17 @@ public class GroupServiceImpl implements GroupService {
                 .isAdmin(false)
                 .joinDate(LocalDateTime.now())
                 .build()).toList();
-        memberRepository.saveAll(newMembers);
+        newMembers = memberRepository.saveAll(newMembers);
+        var groupId = newMembers.get(0).getGroup().getId();
+        for (Long id : dto.getUserIds()) {
+            NotificationData data = NotificationData.builder()
+                    .senderId(currentUserId)
+                    .recipientId(id)
+                    .groupName(group.getGroupName())
+                    .referenceId(groupId)
+                    .build();
+            notificationService.sendNotification(NotificationType.GROUP_INVITATION, data);
+        }
         //send noti here
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Invited", ""));
     }
@@ -142,7 +166,7 @@ public class GroupServiceImpl implements GroupService {
     }
 
     @Override
-    public ResponseEntity<?> getUserGroups(GroupType groupType) {
+    public ResponseEntity<?> getUserGroups() {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         var buddies = groupRepository.findGroupsByUserAndGroupType(currentUserId, GroupType.ONE_TO_ONE).stream().map(group -> {
             var user = group.getMembers().stream().filter(m -> !m.getUser().getId().equals(currentUserId)).findFirst().orElseThrow(() -> new NotFoundException("member not found")).getUser();

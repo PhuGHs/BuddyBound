@@ -20,6 +20,7 @@ import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
 import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.service.ImageService;
+import com.mobile.buddybound.service.NotificationService;
 import com.mobile.buddybound.service.PostService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.PostMapper;
@@ -50,8 +51,8 @@ public class PostServiceImpl implements PostService {
     private final PostVisibilityRepository postVisibilityRepository;
     private final UserService userService;
     private final GroupRepository groupRepository;
-    private final NotificationFactoryProvider factoryProvider;
     private final static String baseUrl = ImageDirectory.POST_PREFIX;
+    private final NotificationService notificationService;
 
     @Scheduled(fixedRate = 60000) // Runs every minute
     public void checkAndUpdateExpiredPosts() {
@@ -95,7 +96,7 @@ public class PostServiceImpl implements PostService {
 
         if (Objects.nonNull(image)) {
             CompletableFuture<Image> imageFuture = CompletableFuture.supplyAsync(() -> imageService.uploadImageAsync(image, baseUrl));
-            post.setImage(Image.builder().imageUrl(imageFuture.join().getImageUrl()).build());
+            post.setImage(imageFuture.join());
         }
 
         Post finalPost = post;
@@ -113,7 +114,6 @@ public class PostServiceImpl implements PostService {
         post = postRepository.save(post);
 
         //send notification
-        NotificationFactory factory = factoryProvider.getFactory(NotificationType.GROUP_POST);
         for (Long id : dto.getViewerIds()) {
             NotificationData data = NotificationData.builder()
                     .senderId(currentUserId)
@@ -122,8 +122,7 @@ public class PostServiceImpl implements PostService {
                     .postTitle(post.getNote())
                     .groupName(post.getGroup().getGroupName())
                     .build();
-
-            factory.createNotification(NotificationType.GROUP_POST, data);
+            notificationService.sendNotification(NotificationType.GROUP_POST, data);
         }
 
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "created post", postMapper.toDto(post)));

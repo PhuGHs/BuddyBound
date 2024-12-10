@@ -16,7 +16,7 @@ public interface GroupService {
     ResponseEntity<?> getMembers(Long groupId, boolean isApproved);
     ResponseEntity<?> kickMember(Long groupId, Long userId);
     ResponseEntity<?> approveMember(Long groupId, Long userId);
-    ResponseEntity<?> getUserGroups(GroupType groupType);
+    ResponseEntity<?> getUserGroups();
     Group findGroupById(Long id);
     Member findMemberByUserId(Long id, Long groupId);
 }

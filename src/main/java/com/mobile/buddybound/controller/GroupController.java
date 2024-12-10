@@ -65,7 +65,7 @@ public class GroupController {
 
     @GetMapping("")
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> getUserGroups(@RequestParam(name = "groupType") GroupType groupType) {
-        return groupService.getUserGroups(groupType);
+    public ResponseEntity<?> getUserGroups() {
+        return groupService.getUserGroups();
     }
 }
