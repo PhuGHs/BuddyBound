@@ -6,5 +6,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("${api.prefix}/location-history")
 public class LocationHistoryController {
-
+    
 }
