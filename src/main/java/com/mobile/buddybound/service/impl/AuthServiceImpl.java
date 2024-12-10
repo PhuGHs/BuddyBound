@@ -156,4 +156,15 @@ public class AuthServiceImpl implements AuthService {
         }
         return ResponseEntity.noContent().build();
     }
+
+    @Override
+    public ResponseEntity<?> changePassword(RegisterDto registerDto) {
+        Account account = accountRepository.findByEmail(registerDto.getEmail())
+                .orElseThrow(() -> new NotFoundException("Account is not found"));
+
+        account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
+        account.setVerificationCode("");
+        accountRepository.save(account);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Change password successfully!", accountMapper.toDto(account)));
+    }
 }
