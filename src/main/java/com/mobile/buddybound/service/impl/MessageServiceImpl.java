@@ -14,10 +14,7 @@ import com.mobile.buddybound.repository.ImageRepository;
 import com.mobile.buddybound.repository.MemberRepository;
 import com.mobile.buddybound.repository.MessageRepository;
 import com.mobile.buddybound.repository.UserImageRepository;
-import com.mobile.buddybound.service.GroupService;
-import com.mobile.buddybound.service.ImageService;
-import com.mobile.buddybound.service.MessageService;
-import com.mobile.buddybound.service.UserService;
+import com.mobile.buddybound.service.*;
 import com.mobile.buddybound.service.mapper.MessageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +40,7 @@ public class MessageServiceImpl implements MessageService {
     private final ImageService imageService;
     private final GroupService groupService;
     private final ImageRepository imageRepository;
+    private final WebsocketService websocketService;
 
     private final static String baseUrl = ImageDirectory.MESSAGE_PREFIX;
 
@@ -72,7 +70,10 @@ public class MessageServiceImpl implements MessageService {
         }
 
         message = messageRepository.save(message);
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Send messages", messageMapper.toDto(message)));
+        MessageDto messageDto = messageMapper.toDto(message);
+        //send websocket
+        websocketService.sendMessage(messageDto);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Send messages", messageDto));
     }
 
     @Override

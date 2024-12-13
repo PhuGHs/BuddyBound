@@ -133,6 +133,12 @@
             <artifactId>imagekit-java</artifactId>
             <version>2.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.2</version> <!-- Use the same version as your jackson-databind -->
+        </dependency>
+
     </dependencies>
 
     <build>

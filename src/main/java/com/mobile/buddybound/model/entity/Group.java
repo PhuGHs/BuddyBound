@@ -1,6 +1,8 @@
 package com.mobile.buddybound.model.entity;
 
+import com.mobile.buddybound.model.dto.LocationDto;
 import com.mobile.buddybound.model.enumeration.GroupType;
+import com.mobile.buddybound.pattern.observer.Subscriber;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

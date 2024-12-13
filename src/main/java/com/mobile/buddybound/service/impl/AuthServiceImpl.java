@@ -167,4 +167,15 @@ public class AuthServiceImpl implements AuthService {
         accountRepository.save(account);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Change password successfully!", accountMapper.toDto(account)));
     }
+
+    @Override
+    public void revokeRefreshTokenPeriodically() {
+        List<AccountSession> sessions = accountSessionRepository.findByIsRevokedFalseAndExpiresAtBefore(LocalDateTime.now())
+                .stream()
+                .map(a -> {
+                    a.setIsRevoked(true);
+                    return a;
+                }).toList();
+        accountSessionRepository.saveAll(sessions);
+    }
 }

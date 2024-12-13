@@ -2,20 +2,18 @@ package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
-import com.mobile.buddybound.model.dto.BuddyGroupDto;
-import com.mobile.buddybound.model.dto.GroupDto;
-import com.mobile.buddybound.model.dto.NotificationData;
-import com.mobile.buddybound.model.dto.UserGroupGetDto;
-import com.mobile.buddybound.model.entity.Group;
-import com.mobile.buddybound.model.entity.Member;
+import com.mobile.buddybound.model.dto.*;
+import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.enumeration.GroupType;
 import com.mobile.buddybound.model.enumeration.NotificationType;
+import com.mobile.buddybound.model.enumeration.RelationshipType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.repository.GroupRepository;
 import com.mobile.buddybound.repository.MemberRepository;
 import com.mobile.buddybound.service.GroupService;
 import com.mobile.buddybound.service.NotificationService;
+import com.mobile.buddybound.service.RelationshipService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.GroupMapper;
 import com.mobile.buddybound.service.mapper.MemberMapper;
@@ -27,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Component
@@ -39,6 +38,7 @@ public class GroupServiceImpl implements GroupService {
     private final MemberMapper memberMapper;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+    private final RelationshipService relationshipService;
 
     @Override
     @Transactional
@@ -58,6 +58,7 @@ public class GroupServiceImpl implements GroupService {
 
         Group group = groupRepository.save(groupMapper.toEntity(dto));
         group.setOwner(user);
+
         var userIds = Stream.concat(Stream.of(currentUserId), dto.getUserIds().stream()).toList();
         var members = userIds.stream().map(userId -> Member.builder()
                 .user(userService.findById(userId))
@@ -131,8 +132,32 @@ public class GroupServiceImpl implements GroupService {
         if (!memberRepository.existsByUser_IdAndGroup_Id(currentUserId, groupId)) {
             throw new BadRequestException("User is not in group");
         }
+        List<Member> members = memberRepository.getAllMembers(groupId, isApproved);
+        List<MemberDto> dtos = members.stream().map(member -> {
+            MemberDto dto = MemberDto.builder()
+                    .id(member.getId())
+                    .isAdmin(member.isAdmin())
+                    .isApproved(member.isApproved())
+                    .group(groupMapper.toDto(member.getGroup()))
+                    .user(userMapper.toDto(member.getUser()))
+                    .joinDate(member.getJoinDate())
+                    .build();
+            if (GroupType.FAMILY.equals(member.getGroup().getGroupType())) {
+                FamilyRelationship relationship = relationshipService.getFamilyRelationshipBetweenTwoPeople(currentUserId, member.getUser().getId());
+                if (!Objects.isNull(relationship) && currentUserId.equals(relationship.getSender().getId())) {
+                    dto.setRole(relationship.getReceiverRole().toString());
+                    dto.setFamilyType(relationship.getFamilyType());
+                }
+            } else {
+                FriendRelationship friendRelationship = relationshipService.getFriendRelationshipBetweenTwoPeople(currentUserId, member.getUser().getId());
+                if (!Objects.isNull(friendRelationship)) {
+                    dto.setFriendType(friendRelationship.getFriendType());
+                }
+            }
+            return dto;
+        }).toList();
 
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get members", memberRepository.getAllMembers(groupId, isApproved).stream().map(memberMapper::toDto)));
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get members", dtos));
     }
 
     @Override

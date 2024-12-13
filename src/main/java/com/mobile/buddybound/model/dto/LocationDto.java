@@ -24,6 +24,6 @@ public class LocationDto {
     private double longitude;
 
     @JsonView(Views.Read.class)
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private LocalDateTime timestamp;
 
 }

@@ -142,6 +142,16 @@ public class RelationshipServiceImpl implements RelationshipService {
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all restricted users", user.getBlockedRelationships().stream().map(blockedRelationshipMapper::toDto)));
     }
 
+    @Override
+    public FamilyRelationship getFamilyRelationshipBetweenTwoPeople(Long currentUserId, Long userId) {
+        return familyRelationshipRepository.findRelationship(currentUserId, userId);
+    }
+
+    @Override
+    public FriendRelationship getFriendRelationshipBetweenTwoPeople(Long currentUserId, Long userId) {
+        return friendRelationshipRepository.getFriendRelationship(currentUserId, userId);
+    }
+
     private boolean isFamily(RelationshipType type) {
         return type.equals(RelationshipType.FAMILY);
     }

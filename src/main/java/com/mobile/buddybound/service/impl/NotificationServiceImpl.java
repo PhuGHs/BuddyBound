@@ -12,6 +12,7 @@ import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.NotificationRepository;
 import com.mobile.buddybound.service.NotificationService;
 import com.mobile.buddybound.service.UserService;
+import com.mobile.buddybound.service.WebsocketService;
 import com.mobile.buddybound.service.mapper.NotificationMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserService userService;
     private final NotificationMapper notificationMapper;
     private final NotificationFactoryProvider factoryProvider;
+    private final WebsocketService websocketService;
 
     @Override
     public ResponseEntity<?> getNotifications() {
@@ -78,6 +80,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void sendNotification(NotificationType type, NotificationData data) {
         NotificationFactory factory = factoryProvider.getFactory(type);
         factory.createNotification(type, data);
-        //add websocket here
+        //send websocket
+        websocketService.sendNotificationUpdate(data);
     }
 }

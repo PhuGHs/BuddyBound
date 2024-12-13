@@ -11,4 +11,7 @@ public interface LocationMapper extends EntityMapper<Location, LocationDto> {
     @Override
     @Mapping(source = "user.id", target = "userId")
     LocationDto toDto(Location location);
+
+    @Override
+    Location toEntity(LocationDto dto);
 }

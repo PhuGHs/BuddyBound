@@ -11,4 +11,7 @@ import java.util.List;
 
 @Repository
 public interface FamilyRelationshipRepository extends JpaRepository<FamilyRelationship, Long>, JpaSpecificationExecutor<FamilyRelationship> {
+    @Query("SELECT f FROM FamilyRelationship f " +
+            "WHERE (f.sender.id = :currentUserId AND f.receiver.id = :userId) OR (f.sender.id = :userId AND f.receiver.id = :currentUserId)")
+    FamilyRelationship findRelationship(Long currentUserId, Long userId);
 }

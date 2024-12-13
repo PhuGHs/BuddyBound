@@ -37,6 +37,9 @@ public class User {
     private Account account;
 
     @OneToOne(mappedBy = "user")
+    private Location location;
+
+    @OneToOne(mappedBy = "user")
     private UserSettings settings;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

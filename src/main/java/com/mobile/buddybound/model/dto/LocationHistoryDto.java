@@ -17,7 +17,7 @@ public class LocationHistoryDto {
     private Long id;
 
     @JsonView({ Views.Read.class, Views.Create.class })
-    private Long userId;
+    private UserDto user;
 
     @JsonView({ Views.Read.class, Views.Create.class })
     private double latitude;
