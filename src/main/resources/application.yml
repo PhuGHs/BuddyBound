@@ -17,9 +17,9 @@ spring:
     cache: false # Set to true in production
 
   datasource:
-    username: ${DB_USERNAME:root}
-    password: ${DB_PW:123456}
-    url: ${DB_URL:jdbc:mysql://localhost:3306/buddy_bound?createDatabaseIfNotExist=true}
+    username: root
+    password: MQtiMVtMMLbqumfXeeTdHYuvgAYnpeFJ
+    url: jdbc:mysql://root:MQtiMVtMMLbqumfXeeTdHYuvgAYnpeFJ@autorack.proxy.rlwy.net:15404/railway
 
     hikari:
       connection-timeout: 30000
