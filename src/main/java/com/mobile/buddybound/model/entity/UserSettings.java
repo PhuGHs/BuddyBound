@@ -21,11 +21,11 @@ public class UserSettings {
     private User user;
 
     @Column(name = "contact_enabled")
-    private boolean contactEnabled;
+    private boolean contactEnabled = false;
 
     @Column(name = "location_enabled")
-    private boolean locationEnabled;
+    private boolean locationEnabled = false;
 
     @Column(name = "location_history_enabled")
-    private boolean locationHistoryEnabled;
+    private boolean locationHistoryEnabled = false;
 }

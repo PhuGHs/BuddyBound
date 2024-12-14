@@ -27,6 +27,8 @@ import com.mobile.buddybound.service.mapper.BlockedRelationshipMapper;
 import com.mobile.buddybound.service.mapper.RelationshipMapper;
 import com.mobile.buddybound.service.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -54,7 +56,8 @@ public class RelationshipServiceImpl implements RelationshipService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> addRelationship(RelationshipDto dto) {
+    @CacheEvict(value = "relationships", allEntries = true)
+    public Object addRelationship(RelationshipDto dto) {
         User sender = userService.getCurrentLoggedInUser();
         if (!userRepository.existsById(dto.getReceiverId())) {
             throw new NotFoundException("receiver not found");
@@ -92,22 +95,25 @@ public class RelationshipServiceImpl implements RelationshipService {
                 .build();
         notificationService.sendNotification(NotificationType.RELATIONSHIP_REQUEST, data);
 
-        Object returnObject = !this.isFamily(dto.getRelationshipType()) ? relationshipMapper.toFriendRelationshipDto((FriendRelationship) savedOne) : relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) savedOne);
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "add Relationship", returnObject));
+        return !this.isFamily(dto.getRelationshipType()) ? relationshipMapper.toFriendRelationshipDto((FriendRelationship) savedOne) : relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) savedOne);
     }
 
     @Override
-    public ResponseEntity<?> getAllRelationship(String searchTerm, boolean isPending, RelationshipType type) {
-        Long currentUserId = userService.getCurrentLoggedInUser().getId();
+    @Cacheable(value = "relationships", key = "#type + '-' + #currentUserId + '-' + #isPending + '-' + (#searchTerm != null && !#searchTerm.isBlank() ? #searchTerm : 'ALL')")
+    public List<RelationshipDto> getAllRelationship(Long currentUserId, String searchTerm, boolean isPending, RelationshipType type) {
+
+        // Normalize searchTerm to handle null or blank values
+        String normalizedSearchTerm = (searchTerm != null && !searchTerm.isBlank()) ? searchTerm : null;
 
         RelationshipStrategy strategy = relationshipStrategyContext.getStrategy(type);
-        List<RelationshipDto> dtos = strategy.getRelationships(currentUserId, searchTerm, isPending);
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Relationships returned", dtos));
+        return strategy.getRelationships(currentUserId, normalizedSearchTerm, isPending);
     }
+
 
     @Override
     @Transactional
-    public ResponseEntity<?> updateRelationship(RelationshipDto dto) {
+    @CacheEvict(value = "relationships", allEntries = true)
+    public Relationship updateRelationship(RelationshipDto dto) {
         User user = userService.getCurrentLoggedInUser();
         Relationship relationship = getRelationshipByType(dto);
 
@@ -116,10 +122,7 @@ public class RelationshipServiceImpl implements RelationshipService {
             throw new BadRequestException("You are not within this relationship");
         }
 
-        if (relationship instanceof FamilyRelationship) {
-            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "update Relationship", relationshipMapper.toFamilyRelationshipDto((FamilyRelationship) relationship)));
-        }
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "update relationship", relationshipMapper.toFriendRelationshipDto((FriendRelationship) relationship)));
+        return relationship;
     }
 
     @Override
@@ -150,6 +153,19 @@ public class RelationshipServiceImpl implements RelationshipService {
     @Override
     public FriendRelationship getFriendRelationshipBetweenTwoPeople(Long currentUserId, Long userId) {
         return friendRelationshipRepository.getFriendRelationship(currentUserId, userId);
+    }
+
+    @Override
+    public ResponseEntity<?> acceptRelationship(Long relationshipId) {
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+        var relationship = relationshipRepository.findById(relationshipId)
+                .orElseThrow(() -> new NotFoundException("Relationship not found"));
+        if (!relationship.getReceiver().getId().equals(currentUserId)) {
+            throw new BadRequestException("You are not the receiver");
+        }
+        relationship.setPending(false);
+        relationshipRepository.save(relationship);
+        return ResponseEntity.ok().build();
     }
 
     private boolean isFamily(RelationshipType type) {

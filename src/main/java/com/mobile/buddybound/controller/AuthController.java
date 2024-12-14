@@ -46,7 +46,7 @@ public class AuthController {
     public ResponseEntity<?> verifyCode(
             @Valid @RequestBody CodeVerificationRequest code
             ) {
-        return authService.verify(code.getCode());
+        return authService.verify(code.getEmail(), code.getCode());
     }
 
     @PutMapping("/change-password")

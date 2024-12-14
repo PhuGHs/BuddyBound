@@ -6,10 +6,10 @@ import lombok.AllArgsConstructor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = { UserMapper.class })
 public interface LocationMapper extends EntityMapper<Location, LocationDto> {
     @Override
-    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user", target = "user")
     LocationDto toDto(Location location);
 
     @Override

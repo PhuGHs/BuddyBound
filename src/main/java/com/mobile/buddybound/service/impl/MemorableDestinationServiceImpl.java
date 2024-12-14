@@ -12,7 +12,8 @@ import com.mobile.buddybound.service.MemorableDestinationService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.MemorableDestinationMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,7 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
 
     @Override
     @Transactional
+    @CacheEvict(value = {"destinations"}, allEntries = true)
     public ResponseEntity<?> createDestination(MemorableDestinationDto memorableDestinationDto) {
         var currentUser = userService.getCurrentLoggedInUser();
         MemorableDestination entity = memorableDestinationMapper.toEntity(memorableDestinationDto);
@@ -40,6 +42,7 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
 
     @Override
     @Transactional
+    @CacheEvict(value = {"destinations"}, allEntries = true)
     public ResponseEntity<?> updateDestination(MemorableDestinationDto memorableDestinationDto) {
         var currentUser = userService.getCurrentLoggedInUser();
         var destination = currentUser.getMemorableDestinations().stream().filter(d -> d.getId().equals(memorableDestinationDto.getId())).findFirst();
@@ -55,6 +58,7 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
 
     @Override
     @Transactional
+    @CacheEvict(value = {"destinations"}, allEntries = true)
     public ResponseEntity<?> deleteDestination(Long id) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         var destination = memorableDestinationRepository.findById(id)
@@ -67,27 +71,24 @@ public class MemorableDestinationServiceImpl implements MemorableDestinationServ
     }
 
     @Override
-    public ResponseEntity<?> getAllDestinations(MemorableDestinationType type) {
-        var currentUserId = userService.getCurrentLoggedInUser().getId();
-
+    @Cacheable(value = "destinations", key = "#type + '-' + #currentUserId")
+    public List<MemorableDestinationDto> getAllDestinations(Long currentUserId, MemorableDestinationType type) {
         List<MemorableDestination> destinations = (type != null)
                 ? memorableDestinationRepository.getAllByUser_IdAndLocationType(currentUserId, type)
                 : memorableDestinationRepository.getAllByUser_Id(currentUserId);
 
-        List<MemorableDestinationDto> dtoList = destinations.stream()
+        return destinations.stream()
                 .map(memorableDestinationMapper::toDto)
                 .toList();
-
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all", dtoList));
     }
 
-    @Override
-    public ResponseEntity<?> getNearbyDestinations(Double latitude, Double longitude, MemorableDestinationType type) {
-        var currentUserId = userService.getCurrentLoggedInUser().getId();
-        List<MemorableDestinationDto> dtoList = memorableDestinationRepository.findNearbyDestinationsByType(currentUserId, latitude, longitude, type)
-                .stream()
-                .map(memorableDestinationMapper::toDto)
-                .toList();
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get nearby locations", dtoList));
-    }
+//    @Override
+//    public ResponseEntity<?> getNearbyDestinations(Double latitude, Double longitude, MemorableDestinationType type) {
+//        var currentUserId = userService.getCurrentLoggedInUser().getId();
+//        List<MemorableDestinationDto> dtoList = memorableDestinationRepository.findNearbyDestinationsByType(currentUserId, latitude, longitude, type)
+//                .stream()
+//                .map(memorableDestinationMapper::toDto)
+//                .toList();
+//        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get nearby locations", dtoList));
+//    }
 }

@@ -14,7 +14,7 @@ public interface AuthService {
     ResponseEntity<AuthResponse> login(LoginDto loginDto);
     ResponseEntity<ApiResponse> refresh(String refreshToken);
     ResponseEntity<?> forgotPassword(String email);
-    ResponseEntity<?> verify(String code);
+    ResponseEntity<?> verify(String email, String code);
     ResponseEntity<?> changePassword(RegisterDto registerDto);
     void revokeRefreshTokenPeriodically();
 }

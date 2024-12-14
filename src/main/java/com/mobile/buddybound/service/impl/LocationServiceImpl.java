@@ -1,7 +1,10 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.model.dto.LocationDto;
 import com.mobile.buddybound.model.entity.Location;
+import com.mobile.buddybound.model.response.ApiResponse;
+import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.pattern.observer.GroupSubscriber;
 import com.mobile.buddybound.pattern.observer.Publisher;
 import com.mobile.buddybound.repository.LocationRepository;
@@ -10,13 +13,17 @@ import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.LocationMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LocationServiceImpl implements LocationService {
     private final Publisher publisher;
     private final GroupSubscriber groupSubscriber;
@@ -32,6 +39,10 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public void updateUserLocation(LocationDto dto) {
         var currentUser = userService.getCurrentLoggedInUser();
+        if (Objects.isNull(currentUser.getSettings()) || !currentUser.getSettings().isLocationEnabled()) {
+            log.info("{} has turned off location tracking permission!", currentUser.getFullName());
+            return;
+        }
         Location location = locationRepository.findByUser_Id(currentUser.getId())
                 .orElse(null);
         if (Objects.isNull(location)) {
@@ -53,5 +64,11 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public void turnOffUserLocation() {
 
+    }
+
+    @Override
+    public ResponseEntity<?> loadMap(Long groupId) {
+        List<Location> locations = locationRepository.getUserLocationsWithinGroup(groupId);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get locations", locations.stream().map(locationMapper::toDto)));
     }
 }

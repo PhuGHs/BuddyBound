@@ -11,7 +11,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @Builder
-public class MemorableDestination {
+public class MemorableDestination extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -24,11 +24,13 @@ public class MemorableDestination {
     @Column(name = "note")
     private String note;
 
+    @Column(name = "longitude")
+    private double longitude;
+
+    @Column(name = "latitude")
+    private double latitude;
+
     @Column(name = "location_type")
     @Enumerated(EnumType.STRING)
     private MemorableDestinationType locationType;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "location_id")
-    private LocationHistory location;
 }

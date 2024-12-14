@@ -56,7 +56,7 @@ public class LocationHistoryServiceImpl implements LocationHistoryService {
         var users = userRepository.findAll();
         users.forEach(user -> {
             var location = user.getLocation();
-            if (!Objects.isNull(location)) {
+            if (!Objects.isNull(location) && !Objects.isNull(user.getSettings()) && user.getSettings().isLocationHistoryEnabled()) {
                 var locationHistory = locationHistoryRepository.findLatestLocationHistoryByUserId(user.getId()).orElse(null);
                 if (Objects.isNull(locationHistory)) {
                     return;

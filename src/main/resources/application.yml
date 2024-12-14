@@ -1,6 +1,8 @@
 spring:
   profiles:
     active: develop
+  cache:
+    type: redis
   servlet:
     multipart:
       enabled: true
@@ -17,9 +19,9 @@ spring:
     cache: false # Set to true in production
 
   datasource:
-    username: root
-    password: MQtiMVtMMLbqumfXeeTdHYuvgAYnpeFJ
-    url: jdbc:mysql://root:MQtiMVtMMLbqumfXeeTdHYuvgAYnpeFJ@autorack.proxy.rlwy.net:15404/railway
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:123456}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/buddy_bound?createDatabaseIfNotExist=true}
 
     hikari:
       connection-timeout: 30000
@@ -28,12 +30,11 @@ spring:
 
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-
-#  data:
-#    redis:
-#      host: ${REDIS_HOST:localhost}
-#      port: ${REDIS_PORT:6379}
-#      connect-timeout: 60000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      connect-timeout: 60000
 
   jpa:
     show-sql: false

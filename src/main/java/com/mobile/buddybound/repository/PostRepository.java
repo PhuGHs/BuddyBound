@@ -17,4 +17,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p FROM Post p LEFT JOIN PostVisibility pv ON p.id = pv.post.id WHERE p.group.id = :groupId AND p.member.user.id = :userId")
     Page<Post> getViewablePostsInGroup(Long groupId, Long userId, Pageable pageable);
+
+    @Query("SELECT p FROM Post p LEFT JOIN PostVisibility pv ON p.id = pv.post.id WHERE p.group.id = :groupId AND p.member.user.id = :userId")
+    List<Post> getViewablePostsInGroupNoPagination(Long groupId, Long userId);
 }

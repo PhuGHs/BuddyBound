@@ -18,6 +18,7 @@ import com.mobile.buddybound.service.*;
 import com.mobile.buddybound.service.mapper.MessageMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
+    @Cacheable(value = "messages", key = "#dto.getGroupId()")
     public ResponseEntity<?> sendAMessage(MessagePostDto dto, List<MultipartFile> images) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         Member member = memberRepository.getMemberByUser_IdAndGroup_Id(currentUserId, dto.getGroupId())
@@ -77,6 +79,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Cacheable(value = "messages", key = "#groupId")
     public ResponseEntity<?> getAllGroupMessages(Long groupId, Pageable pageable) {
         checkUserInvolved(groupId);
         var messageDtos = messageRepository.findByGroup_Id(groupId, pageable).stream().map(messageMapper::toDto);

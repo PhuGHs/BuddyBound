@@ -8,7 +8,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "location_histories")
+@Table(
+        name = "location_histories",
+        indexes = {
+                @Index(name = "idx_locationHistory_timestamp", columnList = "createdAt")
+        }
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -32,7 +37,4 @@ public class LocationHistory extends BaseEntity {
 
     @OneToMany(mappedBy = "location")
     private List<Post> posts;
-
-    @OneToMany(mappedBy = "location")
-    private List<MemorableDestination> memorableDestinations;
 }

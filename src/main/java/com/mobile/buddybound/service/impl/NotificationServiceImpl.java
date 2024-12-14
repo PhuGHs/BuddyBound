@@ -16,6 +16,9 @@ import com.mobile.buddybound.service.WebsocketService;
 import com.mobile.buddybound.service.mapper.NotificationMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -32,9 +35,9 @@ public class NotificationServiceImpl implements NotificationService {
     private final WebsocketService websocketService;
 
     @Override
-    public ResponseEntity<?> getNotifications() {
-        var currentUserId = userService.getCurrentLoggedInUser().getId();
-        List<NotificationDto> dtoList = notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
+    @Cacheable(value = "notifications", key = "#currentUserId")
+    public List<NotificationDto> getNotifications(Long currentUserId) {
+        return notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
                 .stream()
                 .map(t -> switch (t.getNotificationType()) {
                     case COMMENT -> notificationMapper.toCommentNotificationDto(t);
@@ -43,37 +46,34 @@ public class NotificationServiceImpl implements NotificationService {
                     case RELATIONSHIP_REQUEST -> notificationMapper.toRelationshipRequest(t);
                 })
                 .toList();
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all notifications", dtoList));
     }
 
     @Override
-    public ResponseEntity<?> markAllAsRead() {
-        var currentUserId = userService.getCurrentLoggedInUser().getId();
+    @CacheEvict(value = "notifications", key = "#currentUserId")
+    public void markAllAsRead(Long currentUserId) {
         List<Notification> notifications = notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
                 .stream()
                 .map(n -> {
                     n.setRead(true);
                     return n;
                 }).toList();
-        notificationRepository.saveAll(notifications);
-        return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<?> markAsRead(Long notificationId) {
+    @CacheEvict(value = "notifications", key = "#currentUserId")
+    public void markAsRead(Long currentUserId, Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotFoundException("Notification not found"));
         notification.setRead(true);
-        return ResponseEntity.noContent().build();
+        notificationRepository.save(notification);
     }
 
     @Override
-    public ResponseEntity<?> deleteNotification(Long notificationId) {
+    public void deleteNotification(Long notificationId) {
         if (notificationRepository.existsById(notificationId)) {
             throw new NotFoundException("Notification with id " + notificationId + " not found");
         }
         notificationRepository.deleteById(notificationId);
-        return ResponseEntity.noContent().build();
     }
 
     @Override

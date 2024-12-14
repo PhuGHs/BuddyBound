@@ -58,16 +58,24 @@ public class UserServiceImpl implements UserService  {
     @Override
     public ResponseEntity<?> setUserSettings(SettingDto dto) {
         var currentUser = this.getCurrentLoggedInUser();
-        if (!Objects.isNull(currentUser.getSettings())) {
-            UserSettings userSettings = currentUser.getSettings();
-            userSettings.setContactEnabled(dto.isContactEnabled());
-            userSettings.setLocationEnabled(dto.isContactEnabled());
-            userSettings.setLocationHistoryEnabled(dto.isLocationHistoryEnabled());
-            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Set user settings", settingMapper.toDto(settingRepository.save(userSettings))));
+        var settings = settingRepository.findByUser_Id(currentUser.getId())
+                .orElse(null);
+        if (Objects.isNull(settings)) {
+            UserSettings newSettings = UserSettings.builder()
+                    .user(currentUser)
+                    .contactEnabled(dto.isContactEnabled())
+                    .locationEnabled(dto.isLocationEnabled())
+                    .locationHistoryEnabled(dto.isLocationEnabled() && dto.isLocationHistoryEnabled())
+                    .build();
+            newSettings = settingRepository.save(newSettings);
+            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "set user settings", settingMapper.toDto(newSettings)));
         }
-        UserSettings settings = settingMapper.toEntity(dto);
-        settings.setUser(currentUser);
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Set user settings", settingMapper.toDto(settingRepository.save(settings))));
+
+        settings.setContactEnabled(dto.isContactEnabled());
+        settings.setLocationEnabled(dto.isLocationEnabled());
+        settings.setLocationHistoryEnabled(dto.isLocationEnabled() && dto.isLocationHistoryEnabled());
+        settings = settingRepository.save(settings);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "set user settings", settingMapper.toDto(settings)));
     }
 
     @Override

@@ -25,5 +25,11 @@ public class MemorableDestinationDto {
     private MemorableDestinationType locationType;
 
     @JsonView({Views.Read.class, Views.Create.class})
-    private LocationHistoryDto location;
+    private double latitude;
+
+    @JsonView({ Views.Read.class, Views.Create.class })
+    private double longitude;
+
+    @JsonView({ Views.Read.class })
+    private LocalDateTime createdAt;
 }

@@ -5,7 +5,12 @@ import lombok.*;
 
 import java.util.List;
 
-@Table(name = "accounts")
+@Table(
+        name = "accounts",
+        indexes = {
+                @Index(name = "idx_email", columnList = "email")
+        }
+)
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor

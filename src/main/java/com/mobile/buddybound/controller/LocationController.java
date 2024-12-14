@@ -6,10 +6,8 @@ import com.mobile.buddybound.model.dto.Views;
 import com.mobile.buddybound.service.LocationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("${api.prefix}/location")
@@ -21,5 +19,11 @@ public class LocationController {
     @PostMapping("/update")
     public void updateLocation(@RequestBody @JsonView({Views.Create.class}) LocationDto locationDto) {
         locationService.updateUserLocation(locationDto);
+    }
+
+    @GetMapping("/loadMap/{groupId}")
+    @JsonView(Views.Read.class)
+    public ResponseEntity<?> getUserLocationsWithinAGroup(@PathVariable Long groupId) {
+        return locationService.loadMap(groupId);
     }
 }

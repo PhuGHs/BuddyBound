@@ -32,8 +32,7 @@ public class MailServiceImpl implements MailService {
     }
 
     @Override
-    public void sendOtpEmail(String to, String userName) {
-        String otpCode = OtpGenerator.generateOtp(6);
+    public void sendOtpEmail(String to, String userName, String otpCode) {
 
         Context context = new Context();
         context.setVariable("userName", userName);

@@ -1,5 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
+import com.mobile.buddybound.config.OtpGenerator;
 import com.mobile.buddybound.exception.BadRequestException;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.LoginDto;
@@ -16,6 +17,7 @@ import com.mobile.buddybound.service.mapper.AccountMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -144,14 +146,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> forgotPassword(String email) {
+        String otpCode = OtpGenerator.generateOtp(6);
         Account account = accountRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Account is not found"));
-        mailService.sendOtpEmail(email, account.getUser().getFullName());
+        account.setVerificationCode(otpCode);
+        accountRepository.save(account);
+        mailService.sendOtpEmail(email, account.getUser().getFullName(), otpCode);
         return ResponseEntity.noContent().build();
     }
 
     @Override
-    public ResponseEntity<?> verify(String code) {
-        if (accountRepository.existsByVerificationCode(code)) {
+    public ResponseEntity<?> verify(String email, String code) {
+        if (accountRepository.existsByEmailAndVerificationCode(email, code)) {
             throw new BadRequestException("Mismatch verification code");
         }
         return ResponseEntity.noContent().build();
@@ -164,11 +169,12 @@ public class AuthServiceImpl implements AuthService {
 
         account.setPassword(passwordEncoder.encode(registerDto.getPassword()));
         account.setVerificationCode("");
-        accountRepository.save(account);
+        account = accountRepository.save(account);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Change password successfully!", accountMapper.toDto(account)));
     }
 
     @Override
+    @Scheduled(fixedRate = 3600000) // every hour
     public void revokeRefreshTokenPeriodically() {
         List<AccountSession> sessions = accountSessionRepository.findByIsRevokedFalseAndExpiresAtBefore(LocalDateTime.now())
                 .stream()

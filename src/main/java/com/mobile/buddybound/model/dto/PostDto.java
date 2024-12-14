@@ -43,7 +43,7 @@ public class PostDto {
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @JsonView(Views.Read.class)
-    private Comment firstComment;
+    private CommentDto firstComment;
 
     @JsonView(Views.Read.class)
     private int commentCount;

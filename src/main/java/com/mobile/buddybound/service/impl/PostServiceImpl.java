@@ -19,12 +19,12 @@ import com.mobile.buddybound.pattern.CoR.RelationshipHandler;
 import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
 import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.*;
-import com.mobile.buddybound.service.ImageService;
-import com.mobile.buddybound.service.NotificationService;
-import com.mobile.buddybound.service.PostService;
-import com.mobile.buddybound.service.UserService;
+import com.mobile.buddybound.service.*;
+import com.mobile.buddybound.service.mapper.CommentMapper;
 import com.mobile.buddybound.service.mapper.PostMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +53,8 @@ public class PostServiceImpl implements PostService {
     private final GroupRepository groupRepository;
     private final static String baseUrl = ImageDirectory.POST_PREFIX;
     private final NotificationService notificationService;
+    private final CommentRepository commentRepository;
+    private final CommentMapper commentMapper;
 
     @Scheduled(fixedRate = 60000) // Runs every minute
     public void checkAndUpdateExpiredPosts() {
@@ -70,15 +72,14 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> createPost(PostCreateDto dto, MultipartFile image) {
-        var user = userService.getCurrentLoggedInUser();
-        var currentUserId = user.getId();
-        var member = memberRepository.getMemberByUser_IdAndGroup_Id(currentUserId, dto.getGroupId())
+    @CachePut(value = "posts", key = "'group-' + #dto.getGroupId() + '-user-' + #user.getId()")
+    public PostDto createPost(User user, PostCreateDto dto, MultipartFile image) {
+        var member = memberRepository.getMemberByUser_IdAndGroup_Id(user.getId(), dto.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Member not found"));
         var group = groupRepository.findById(dto.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Group not found"));
         List<Long> newIds = new ArrayList<>(dto.getViewerIds());
-        newIds.add(currentUserId);
+        newIds.add(user.getId());
 
         LocationHistory location = LocationHistory.builder()
                 .user(user)
@@ -116,7 +117,7 @@ public class PostServiceImpl implements PostService {
         //send notification
         for (Long id : dto.getViewerIds()) {
             NotificationData data = NotificationData.builder()
-                    .senderId(currentUserId)
+                    .senderId(user.getId())
                     .recipientId(id)
                     .referenceId(post.getId())
                     .postTitle(post.getNote())
@@ -124,12 +125,13 @@ public class PostServiceImpl implements PostService {
                     .build();
             notificationService.sendNotification(NotificationType.GROUP_POST, data);
         }
-
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "created post", postMapper.toDto(post)));
+        PostDto result = postMapper.toDto(post);
+        result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
+        return result;
     }
 
     @Override
-    public ResponseEntity<?> getPostDetail(Long id) {
+    public PostDto getPostDetail(Long id) {
         Long currentUserId = userService.getCurrentLoggedInUser().getId();
         Post post = this.getPost(id);
         PermissionHandler permissionHandler = this.createPermissionChain();
@@ -142,14 +144,32 @@ public class PostServiceImpl implements PostService {
         if (!permissionHandler.checkAccess(request)) {
             throw new BadRequestException("You are not permitted to access this resource");
         }
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get post", postMapper.toDto(post)));
+
+        PostDto result = postMapper.toDto(post);
+        result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
+        return result;
     }
 
     @Override
     public ResponseEntity<?> getAllPosts(Long groupId, Pageable pageable) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
-        Page<PostDto> posts = postRepository.getViewablePostsInGroup(groupId, currentUserId, pageable).map(postMapper::toDto);
+        Page<PostDto> posts = postRepository.getViewablePostsInGroup(groupId, currentUserId, pageable).map(post -> {
+            PostDto result = postMapper.toDto(post);
+            result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
+            return result;
+        });
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get all posts", posts));
+    }
+
+    @Override
+    @Cacheable(value = "posts", key = "'group-' + #groupId + '-user-' + #currentUserId")
+    public List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId) {
+        List<PostDto> dtoList = postRepository.getViewablePostsInGroupNoPagination(groupId, currentUserId).stream().map(post -> {
+            PostDto result = postMapper.toDto(post);
+            result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
+            return result;
+        }).toList();
+        return dtoList;
     }
 
     @Override

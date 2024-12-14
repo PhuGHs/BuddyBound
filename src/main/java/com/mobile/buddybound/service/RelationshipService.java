@@ -9,13 +9,16 @@ import com.mobile.buddybound.model.enumeration.RelationshipType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface RelationshipService {
-    ResponseEntity<?> addRelationship(RelationshipDto dto);
-    ResponseEntity<?> getAllRelationship(String searchTerm, boolean isPending, RelationshipType type);
-    ResponseEntity<?> updateRelationship(RelationshipDto dto);
+    Object addRelationship(RelationshipDto dto);
+    List<RelationshipDto> getAllRelationship(Long currentUserId, String searchTerm, boolean isPending, RelationshipType type);
+    Relationship updateRelationship(RelationshipDto dto);
     ResponseEntity<?> limitOrUnlimitRelationship(BlockedRelationshipDto dto);
     ResponseEntity<?> getUserLimitedRelationshipList();
     FamilyRelationship getFamilyRelationshipBetweenTwoPeople(Long currentUserId, Long userId);
     FriendRelationship getFriendRelationshipBetweenTwoPeople(Long currentUserId, Long userId);
+    ResponseEntity<?> acceptRelationship(Long relationshipId);
 }
