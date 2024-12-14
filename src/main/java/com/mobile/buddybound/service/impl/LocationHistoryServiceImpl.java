@@ -69,6 +69,7 @@ public class LocationHistoryServiceImpl implements LocationHistoryService {
                             .build();
                     log.info("Saving user with Id {} location history: {}", user.getId(), history);
                     locationHistoryRepository.save(history);
+                    return;
                 } else {
                     locationHistory.setCreatedAt(LocalDateTime.now());
                     locationHistoryRepository.save(locationHistory);

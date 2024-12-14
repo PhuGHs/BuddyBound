@@ -6,12 +6,14 @@ import com.mobile.buddybound.repository.GroupRepository;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.WebsocketService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class GroupSubscriber implements Subscriber {
     private final UserService userService;
     private final GroupRepository groupRepository;
@@ -21,6 +23,7 @@ public class GroupSubscriber implements Subscriber {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         List<Group> joinedGroup = groupRepository.findGroupByUser(currentUserId);
         joinedGroup.forEach(group -> {
+            log.info("User with id {} updated location", currentUserId);
             websocketService.sendLocationUpdate(group.getId(), location);
         });
     }
