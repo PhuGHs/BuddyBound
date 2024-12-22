@@ -1,5 +1,8 @@
 package com.mobile.buddybound.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mobile.buddybound.model.dto.PostCreateDto;
 import com.mobile.buddybound.model.dto.PostDto;
 import com.mobile.buddybound.model.entity.Post;
@@ -18,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("${api.prefix}/posts")
@@ -27,7 +32,14 @@ public class PostController {
     private final UserService userService;
 
     @PostMapping(value = "", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE })
-    public ResponseEntity<?> createPost(@RequestPart("image") MultipartFile image, @RequestPart(name = "postData") PostCreateDto postData) {
+    public ResponseEntity<?> createPost(@RequestPart(value = "image", required = false) MultipartFile image, @RequestPart(name = "postData", required = true) String postDataString) {
+        ObjectMapper mapper = new ObjectMapper();
+        PostCreateDto postData;
+        try {
+            postData = mapper.readValue(postDataString, PostCreateDto.class);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().build();
+        }
         var user = userService.getCurrentLoggedInUser();
         var dto = postService.createPost(user, postData, image);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Create post", dto));
@@ -39,9 +51,9 @@ public class PostController {
     }
 
     @GetMapping("/get-all")
-    public ResponseEntity<?> getAll(@RequestParam(name = "groupId") @NotNull Long groupId) {
+    public ResponseEntity<?> getAll(@RequestParam(name = "groupId") @NotNull Long groupId, @RequestParam(name = "isExpired", required = false) Boolean isExpired) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
-        var dtoList = postService.getAllPostsWithoutPagination(currentUserId, groupId);
+        var dtoList = postService.getAllPostsWithoutPagination(currentUserId, groupId, isExpired);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get posts", dtoList));
     }
 
@@ -49,5 +61,11 @@ public class PostController {
     public ResponseEntity<?> getPostDetails(@RequestParam(name = "postId") @NotNull(message = "The postId is required") Long postId) {
         var dto = postService.getPostDetail(postId);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get post details", dto));
+    }
+
+    @GetMapping("/get-user-posts")
+    public ResponseEntity<?> getUserPosts(@RequestParam(required = false) Map<String, String> params) {
+        var dtoList = postService.getUserPosts();
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user posts", dtoList));
     }
 }

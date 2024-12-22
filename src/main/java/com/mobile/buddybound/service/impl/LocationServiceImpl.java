@@ -71,4 +71,14 @@ public class LocationServiceImpl implements LocationService {
         List<Location> locations = locationRepository.getUserLocationsWithinGroup(groupId);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get locations", locations.stream().map(locationMapper::toDto)));
     }
+
+    @Override
+    public ResponseEntity<?> getUserLocation(Long userId) {
+        if (Objects.isNull(userId)) {
+            var currentUser = userService.getCurrentLoggedInUser();
+            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get user location", locationMapper.toDto(currentUser.getLocation())));
+        }
+        var user = userService.findById(userId);
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get user location", locationMapper.toDto(user.getLocation())));
+    }
 }

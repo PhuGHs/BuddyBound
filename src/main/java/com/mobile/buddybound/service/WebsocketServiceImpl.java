@@ -1,6 +1,7 @@
 package com.mobile.buddybound.service;
 
 import com.mobile.buddybound.model.dto.LocationDto;
+import com.mobile.buddybound.model.dto.LocationUpdateDto;
 import com.mobile.buddybound.model.dto.MessageDto;
 import com.mobile.buddybound.model.dto.NotificationData;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class WebsocketServiceImpl implements WebsocketService {
     }
 
     @Override
-    public void sendLocationUpdate(Long groupId, LocationDto locationDto) {
+    public void sendLocationUpdate(Long groupId, LocationUpdateDto locationDto) {
         messagingTemplate.convertAndSend(locationTopic + String.format("/%s", groupId), locationDto);
     }
 

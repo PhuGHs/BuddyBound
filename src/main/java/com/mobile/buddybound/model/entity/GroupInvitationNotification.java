@@ -1,5 +1,6 @@
 package com.mobile.buddybound.model.entity;
 
+import com.mobile.buddybound.model.enumeration.GroupType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -19,6 +20,9 @@ public class GroupInvitationNotification extends Notification {
 
     @Column(name = "group_avatar")
     private String groupAvatar;
+
+    @Column(name = "group_type")
+    private GroupType groupType;
 
     @Override
     public String getMessage() {

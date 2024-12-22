@@ -88,7 +88,7 @@ public class MessageServiceImpl implements MessageService {
 
     private void checkUserInvolved(Long groupId) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
-        if (!memberRepository.existsByUser_IdAndGroup_Id(currentUserId, groupId)) {
+        if (!memberRepository.existsByUser_IdAndGroup_IdAndIsApprovedIsTrue(currentUserId, groupId)) {
             throw new NotFoundException("Can't get group messages because the you are not in the group");
         }
     }

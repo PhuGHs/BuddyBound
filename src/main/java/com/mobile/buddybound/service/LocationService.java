@@ -9,4 +9,5 @@ public interface LocationService {
     void updateUserLocation(LocationDto dto);
     void turnOffUserLocation();
     ResponseEntity<?> loadMap(Long groupId);
+    ResponseEntity<?> getUserLocation(Long userId);
 }

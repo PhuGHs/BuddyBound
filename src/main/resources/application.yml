@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: develop
+    active: dev
   cache:
     type: redis
   servlet:
@@ -32,9 +32,11 @@ spring:
 
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
       connect-timeout: 60000
+      username: ${SPRING_REDIS_USERNAME}
+      password: ${SPRING_REDIS_PASSWORD}
 
   jpa:
     show-sql: false

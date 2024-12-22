@@ -3,6 +3,7 @@ package com.mobile.buddybound.model.dto;
 import com.fasterxml.jackson.annotation.JsonView;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
@@ -25,4 +26,8 @@ public class AlbumDto {
 
     @JsonView({Views.Create.class, Views.Update.class})
     private List<Long> postIdList;
+
+    @JsonView({Views.Read.class})
+    private LocalDateTime createdAt = LocalDateTime.now();
+
 }

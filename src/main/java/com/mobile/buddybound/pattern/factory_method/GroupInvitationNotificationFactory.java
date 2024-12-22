@@ -23,6 +23,7 @@ public class GroupInvitationNotificationFactory implements NotificationFactory {
                 .sender(currentUser)
                 .recipient(recipient)
                 .groupName(data.getGroupName())
+                .groupType(data.getGroupType())
                 .isRead(false)
                 .referenceId(data.getReferenceId())
                 .build();

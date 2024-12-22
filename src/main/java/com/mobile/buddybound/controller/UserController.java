@@ -1,11 +1,13 @@
 package com.mobile.buddybound.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.mobile.buddybound.model.dto.RegisterDto;
 import com.mobile.buddybound.model.dto.SettingDto;
 import com.mobile.buddybound.model.dto.Views;
 import com.mobile.buddybound.model.entity.UserSettings;
 import com.mobile.buddybound.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.sql.Update;
@@ -22,9 +24,10 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(
             @RequestParam(required = false, value = "fullName") String fullName,
-            @RequestParam(required = false, value = "phoneNumber") String phoneNumber)
+            @RequestParam(required = false, value = "phoneNumber") String phoneNumber,
+            @RequestParam(required = false, value = "hasRelationship") Boolean hasRelationship)
     {
-        return userService.searchUser(fullName, phoneNumber);
+        return userService.searchUser(fullName, phoneNumber, hasRelationship);
     }
 
     @GetMapping("/settings")

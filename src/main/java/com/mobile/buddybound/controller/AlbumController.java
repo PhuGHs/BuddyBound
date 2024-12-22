@@ -39,7 +39,7 @@ public class AlbumController {
 
     @PostMapping("")
     @JsonView(Views.Read.class)
-    public ResponseEntity<?> createAlbum(@RequestBody @JsonView(Views.Create.class) AlbumDto albumDto) {
+    public ResponseEntity<?> createAlbum(@RequestBody AlbumDto albumDto) {
         return albumService.createAlbum(albumDto);
     }
 }

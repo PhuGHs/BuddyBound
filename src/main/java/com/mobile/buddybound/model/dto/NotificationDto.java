@@ -1,6 +1,7 @@
 package com.mobile.buddybound.model.dto;
 
 import com.fasterxml.jackson.annotation.*;
+import com.mobile.buddybound.model.enumeration.GroupType;
 import com.mobile.buddybound.model.enumeration.NotificationType;
 import lombok.*;
 
@@ -60,4 +61,7 @@ public class NotificationDto {
 
     @JsonView(Views.Read.class)
     private String requestorName;
+
+    @JsonView({Views.Read.class})
+    private GroupType groupType;
 }

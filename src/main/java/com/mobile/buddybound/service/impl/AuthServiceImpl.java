@@ -66,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
         User user = User.builder()
                 .fullName(registerDto.getFullName())
                 .birthday(registerDto.getBirthday())
+                .phoneNumber(registerDto.getPhoneNumber())
                 .gender(registerDto.isGender())
                 .build();
 

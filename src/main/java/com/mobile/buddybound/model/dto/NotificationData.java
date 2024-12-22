@@ -1,5 +1,6 @@
 package com.mobile.buddybound.model.dto;
 
+import com.mobile.buddybound.model.enumeration.GroupType;
 import lombok.*;
 
 @AllArgsConstructor
@@ -15,4 +16,5 @@ public class NotificationData {
     private String postTitle;
     private String requesterName;
     private String groupName;
+    private GroupType groupType;
 }

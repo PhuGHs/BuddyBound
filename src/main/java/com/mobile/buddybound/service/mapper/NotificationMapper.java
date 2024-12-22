@@ -6,8 +6,8 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring", uses = { UserMapper.class })
 public interface NotificationMapper {
-    NotificationDto toCommentNotificationDto(Notification notification);
-    NotificationDto toGroupPostNotificationDto(Notification notification);
-    NotificationDto toGroupInvitationNotificationDto(Notification notification);
-    NotificationDto toRelationshipRequest(Notification notificationDto);
+    NotificationDto toCommentNotificationDto(CommentNotification notification);
+    NotificationDto toGroupPostNotificationDto(GroupPostNotification notification);
+    NotificationDto toGroupInvitationNotificationDto(GroupInvitationNotification notification);
+    NotificationDto toRelationshipRequest(RelationshipRequestNotification notificationDto);
 }

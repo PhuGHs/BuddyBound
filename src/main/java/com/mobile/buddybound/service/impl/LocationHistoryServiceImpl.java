@@ -14,6 +14,7 @@ import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.LocationHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,13 +40,13 @@ public class LocationHistoryServiceImpl implements LocationHistoryService {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         List<LocationHistory> locationList;
         if (Objects.isNull(startDate) && Objects.isNull(endDate)) {
-            locationList = locationHistoryRepository.findByUser_Id(currentUserId);
+            locationList = locationHistoryRepository.findByUser_Id(currentUserId, Sort.by("createdAt").descending());
         } else if (!Objects.isNull(startDate) && Objects.isNull(endDate)) {
-            locationList = locationHistoryRepository.findByUser_IdAndCreatedAtGreaterThanEqual(currentUserId, startDate.atStartOfDay());
+            locationList = locationHistoryRepository.findByUser_IdAndCreatedAtGreaterThanEqual(currentUserId, startDate.atStartOfDay(), Sort.by("createdAt").descending());
         } else if (Objects.isNull(startDate) && !Objects.isNull(endDate)) {
             locationList = locationHistoryRepository.findByUser_IdAndCreatedAtLessThanEqual(currentUserId, endDate.atTime(LocalTime.MAX));
         } else {
-            locationList = locationHistoryRepository.findByUser_IdAndCreatedAtBetween(currentUserId, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+            locationList = locationHistoryRepository.findByUser_IdAndCreatedAtBetween(currentUserId, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX), Sort.by("createdAt").descending());
         }
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get all location history", locationList.stream().map(locationHistoryMapper::toDto)));
     }

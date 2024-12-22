@@ -3,7 +3,7 @@ package com.mobile.buddybound.service.impl;
 import com.mobile.buddybound.exception.NotFoundException;
 import com.mobile.buddybound.model.dto.NotificationData;
 import com.mobile.buddybound.model.dto.NotificationDto;
-import com.mobile.buddybound.model.entity.Notification;
+import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -35,21 +36,25 @@ public class NotificationServiceImpl implements NotificationService {
     private final WebsocketService websocketService;
 
     @Override
-    @Cacheable(value = "notifications", key = "#currentUserId")
     public List<NotificationDto> getNotifications(Long currentUserId) {
         return notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
                 .stream()
-                .map(t -> switch (t.getNotificationType()) {
-                    case COMMENT -> notificationMapper.toCommentNotificationDto(t);
-                    case GROUP_POST -> notificationMapper.toGroupPostNotificationDto(t);
-                    case GROUP_INVITATION -> notificationMapper.toGroupInvitationNotificationDto(t);
-                    case RELATIONSHIP_REQUEST -> notificationMapper.toRelationshipRequest(t);
+                .map(notification -> {
+                    if (notification instanceof GroupInvitationNotification groupInvitationNotification) {
+                        return notificationMapper.toGroupInvitationNotificationDto(groupInvitationNotification);
+                    } else if (notification instanceof GroupPostNotification groupPostNotification) {
+                        return notificationMapper.toGroupPostNotificationDto(groupPostNotification);
+                    } else if (notification instanceof RelationshipRequestNotification relationshipRequestNotification) {
+                        return notificationMapper.toRelationshipRequest(relationshipRequestNotification);
+                    } else if (notification instanceof CommentNotification commentNotification) {
+                        return notificationMapper.toCommentNotificationDto(commentNotification);
+                    }
+                    return null;
                 })
                 .toList();
     }
 
     @Override
-    @CacheEvict(value = "notifications", key = "#currentUserId")
     public void markAllAsRead(Long currentUserId) {
         List<Notification> notifications = notificationRepository.findNotificationByRecipient_IdOrderByCreatedAtDesc(currentUserId)
                 .stream()
@@ -60,7 +65,6 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @CacheEvict(value = "notifications", key = "#currentUserId")
     public void markAsRead(Long currentUserId, Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotFoundException("Notification not found"));

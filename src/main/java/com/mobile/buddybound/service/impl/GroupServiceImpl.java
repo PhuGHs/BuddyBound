@@ -73,6 +73,7 @@ public class GroupServiceImpl implements GroupService {
             NotificationData data = NotificationData.builder()
                     .senderId(currentUserId)
                     .recipientId(id)
+                    .groupType(group.getGroupType())
                     .groupName(group.getGroupName())
                     .referenceId(groupId)
                     .build();
@@ -89,7 +90,7 @@ public class GroupServiceImpl implements GroupService {
         Group group = groupRepository.findById(dto.getId())
                 .orElseThrow(() -> new NotFoundException("Group not found"));
 
-        if (!memberRepository.existsByUser_IdAndGroup_Id(currentUserId, dto.getId())) {
+        if (!memberRepository.existsByUser_IdAndGroup_IdAndIsApprovedIsTrue(currentUserId, dto.getId())) {
             throw new BadRequestException("User is not in group");
         }
 
@@ -113,6 +114,7 @@ public class GroupServiceImpl implements GroupService {
                     .senderId(currentUserId)
                     .recipientId(id)
                     .groupName(group.getGroupName())
+                    .groupType(group.getGroupType())
                     .referenceId(groupId)
                     .build();
             notificationService.sendNotification(NotificationType.GROUP_INVITATION, data);
@@ -129,7 +131,7 @@ public class GroupServiceImpl implements GroupService {
             throw new BadRequestException("Group not found");
         }
 
-        if (!memberRepository.existsByUser_IdAndGroup_Id(currentUserId, groupId)) {
+        if (!memberRepository.existsByUser_IdAndGroup_IdAndIsApprovedIsTrue(currentUserId, groupId)) {
             throw new BadRequestException("User is not in group");
         }
         List<Member> members = memberRepository.getAllMembers(groupId, isApproved);

@@ -1,13 +1,16 @@
 package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.NotFoundException;
+import com.mobile.buddybound.model.dto.RegisterDto;
 import com.mobile.buddybound.model.dto.SettingDto;
+import com.mobile.buddybound.model.dto.UpdateProfileDto;
 import com.mobile.buddybound.model.entity.Account;
 import com.mobile.buddybound.model.entity.User;
 import com.mobile.buddybound.model.entity.UserSettings;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.repository.AccountRepository;
+import com.mobile.buddybound.repository.RelationshipRepository;
 import com.mobile.buddybound.repository.SettingRepository;
 import com.mobile.buddybound.repository.UserRepository;
 import com.mobile.buddybound.service.UserService;
@@ -31,6 +34,7 @@ public class UserServiceImpl implements UserService  {
     private final UserMapper userMapper;
     private final SettingMapper settingMapper;
     private final SettingRepository settingRepository;
+    private final RelationshipRepository relationshipRepository;
     @Override
     public User findById(Long id) {
         return userRepository.findById(id)
@@ -48,10 +52,18 @@ public class UserServiceImpl implements UserService  {
     }
 
     @Override
-    public ResponseEntity<?> searchUser(String fullName, String phoneNumber) {
+    public ResponseEntity<?> searchUser(String fullName, String phoneNumber, Boolean hasRelationship) {
         User user = getCurrentLoggedInUser();
         List<User> matchedUsers = userRepository.findByFullNameContainingIgnoreCaseOrPhoneNumberContaining(fullName, phoneNumber);
-        matchedUsers.removeIf(u -> u.getId().equals(user.getId()));
+        matchedUsers.removeIf(u -> {
+            if (u.getId().equals(user.getId())) {
+                return true;
+            }
+            if (!Objects.isNull(hasRelationship) && hasRelationship) {
+                return relationshipRepository.checkIfExist(user.getId(), u.getId());
+            }
+            return false;
+        });
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Matched users: ", matchedUsers.stream().map(userMapper::toDto)));
     }
 
@@ -82,5 +94,16 @@ public class UserServiceImpl implements UserService  {
     public ResponseEntity<?> getUserSettings() {
         var currentUser = this.getCurrentLoggedInUser();
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user settings", Objects.isNull(currentUser.getSettings()) ? "" : settingMapper.toDto(currentUser.getSettings())));
+    }
+
+    @Override
+    public ResponseEntity<?> updateProfile(UpdateProfileDto dto) {
+        var user = this.findById(dto.getUserId());
+        user.setBirthday(dto.getBirthday());
+        user.setFullName(dto.getFullName());
+        user.setPhoneNumber(dto.getPhoneNumber());
+        user.setGender(dto.isGender());
+
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Update profile", userMapper.toDto(userRepository.save(user))));
     }
 }

@@ -1,6 +1,8 @@
 package com.mobile.buddybound.controller;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mobile.buddybound.controller.validation.ContentType;
 import com.mobile.buddybound.model.constants.ContentTypes;
 import com.mobile.buddybound.model.dto.MessagePostDto;
@@ -39,10 +41,17 @@ public class MessageController {
     @PostMapping(value = "/sendMessage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @JsonView(Views.Read.class)
     public ResponseEntity<?> sendMessage(
-            @RequestPart MessagePostDto dto,
+            @RequestPart String stringDto,
             @RequestPart(value = "images", required = false)
             List<MultipartFile> images
     ) {
-        return messageService.sendAMessage(dto, images);
+        ObjectMapper mapper = new ObjectMapper();
+        MessagePostDto messagePostDto;
+        try {
+            messagePostDto = mapper.readValue(stringDto, MessagePostDto.class);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return messageService.sendAMessage(messagePostDto, images);
     }
 }

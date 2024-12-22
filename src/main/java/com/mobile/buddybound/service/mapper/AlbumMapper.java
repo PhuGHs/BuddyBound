@@ -15,9 +15,10 @@ public abstract class AlbumMapper {
     @Autowired
     protected UserService userService;
 
-//    @Mapping(source = )
+    @Mapping(source = "createdAt", target = "createdAt")
     public abstract AlbumDto toDto(Album album);
 
     @Mapping(target = "posts", expression = "java(albumDto.getPostIdList().stream().map(id -> postService.getPost(id)).toList())")
+    @Mapping(source = "id", target = "id")
     public abstract Album toEntity(AlbumDto albumDto);
 }

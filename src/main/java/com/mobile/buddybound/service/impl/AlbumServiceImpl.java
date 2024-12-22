@@ -10,6 +10,9 @@ import com.mobile.buddybound.service.AlbumService;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.AlbumMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,6 +27,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Service
 public class AlbumServiceImpl implements AlbumService {
+    private static final Logger log = LoggerFactory.getLogger(AlbumServiceImpl.class);
     private final AlbumRepository albumRepository;
     private final AlbumMapper albumMapper;
     private final UserService userService;
@@ -40,7 +44,7 @@ public class AlbumServiceImpl implements AlbumService {
                 .and(hasSearchTerm(searchTerm))
                 .and(isBetweenStartAndEnd(start, end))
         );
-        List<AlbumDto> dtoList = albumRepository.findAll(spec).stream().map(albumMapper::toDto).toList();
+        List<AlbumDto> dtoList = albumRepository.findAll(spec, Sort.by("createdAt").descending()).stream().map(albumMapper::toDto).toList();
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get albums", dtoList));
     }
 
@@ -68,6 +72,7 @@ public class AlbumServiceImpl implements AlbumService {
     public ResponseEntity<?> createAlbum(AlbumDto dto) {
         var currentUser = userService.getCurrentLoggedInUser();
         Album entity = albumMapper.toEntity(dto);
+        entity.setId(dto.getId());
         entity.setUser(currentUser);
         entity = albumRepository.save(entity);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Create album", albumMapper.toDto(entity)));

@@ -1,6 +1,7 @@
 package com.mobile.buddybound.pattern.observer;
 
 import com.mobile.buddybound.model.dto.LocationDto;
+import com.mobile.buddybound.model.dto.LocationUpdateDto;
 import com.mobile.buddybound.model.entity.Group;
 import com.mobile.buddybound.repository.GroupRepository;
 import com.mobile.buddybound.service.UserService;
@@ -20,11 +21,15 @@ public class GroupSubscriber implements Subscriber {
     private final WebsocketService websocketService;
     @Override
     public void updateLocation(LocationDto location) {
-        var currentUserId = userService.getCurrentLoggedInUser().getId();
-        List<Group> joinedGroup = groupRepository.findGroupByUser(currentUserId);
+        var currentUser = userService.getCurrentLoggedInUser();
+        List<Group> joinedGroup = groupRepository.findGroupByUser(currentUser.getId());
+        LocationUpdateDto message = LocationUpdateDto.builder()
+                .location(location)
+                .blockedIds(currentUser.getBlockedRelationships().stream().map((value) -> value.getUser().getId()).toList())
+                .build();
         joinedGroup.forEach(group -> {
-            log.info("User with id {} updated location", currentUserId);
-            websocketService.sendLocationUpdate(group.getId(), location);
+            log.info("User with id {} updated location", currentUser.getId());
+            websocketService.sendLocationUpdate(group.getId(), message);
         });
     }
 

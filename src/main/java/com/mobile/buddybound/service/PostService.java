@@ -16,6 +16,7 @@ public interface PostService {
     PostDto createPost(User user, PostCreateDto dto, MultipartFile image);
     PostDto getPostDetail(Long id);
     ResponseEntity<?> getAllPosts(Long groupId, Pageable pageable);
-    List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId);
+    List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId, Boolean isExpired);
+    List<PostDto> getUserPosts();
     Post getPost(Long postId);
 }

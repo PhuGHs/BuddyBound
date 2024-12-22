@@ -14,6 +14,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     boolean existsByUser_IdAndGroup_GroupType(Long userId, GroupType groupType);
 
     boolean existsByUser_IdAndGroup_Id(Long userId, Long groupId);
+    boolean existsByUser_IdAndGroup_IdAndIsApprovedIsTrue(Long userId, Long groupId);
 
     boolean existsByUser_IdAndGroup_IdAndIsAdmin(Long userId, Long groupId, boolean isAdmin);
 

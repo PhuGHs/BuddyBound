@@ -26,4 +26,10 @@ public class LocationController {
     public ResponseEntity<?> getUserLocationsWithinAGroup(@PathVariable Long groupId) {
         return locationService.loadMap(groupId);
     }
+
+    @GetMapping("/getUserLocation/{userId}")
+    @JsonView(Views.Read.class)
+    public ResponseEntity<?> getUserLocation(@PathVariable(required = false) Long userId) {
+        return locationService.getUserLocation(userId);
+    }
 }

@@ -12,10 +12,7 @@ import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.enumeration.NotificationType;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
-import com.mobile.buddybound.pattern.CoR.GroupPermissionHandler;
-import com.mobile.buddybound.pattern.CoR.PermissionHandler;
-import com.mobile.buddybound.pattern.CoR.PostVisibilityHandler;
-import com.mobile.buddybound.pattern.CoR.RelationshipHandler;
+import com.mobile.buddybound.pattern.CoR.*;
 import com.mobile.buddybound.pattern.factory_method.NotificationFactory;
 import com.mobile.buddybound.pattern.factory_method.NotificationFactoryProvider;
 import com.mobile.buddybound.repository.*;
@@ -23,10 +20,12 @@ import com.mobile.buddybound.service.*;
 import com.mobile.buddybound.service.mapper.CommentMapper;
 import com.mobile.buddybound.service.mapper.PostMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -72,7 +71,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @CachePut(value = "posts", key = "'group-' + #dto.getGroupId() + '-user-' + #user.getId()")
+    @CacheEvict(value = "posts",
+            key = "'group-' + #dto.groupId + '-user-*'",
+            allEntries = false,
+            condition = "#result != null")
+    @CachePut(value = "posts",
+            key = "'group-' + #dto.groupId + '-user-' + #user.id + '-isExpired-false'",
+            condition = "#result != null")
     public PostDto createPost(User user, PostCreateDto dto, MultipartFile image) {
         var member = memberRepository.getMemberByUser_IdAndGroup_Id(user.getId(), dto.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Member not found"));
@@ -162,14 +167,31 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "posts", key = "'group-' + #groupId + '-user-' + #currentUserId")
-    public List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId) {
-        List<PostDto> dtoList = postRepository.getViewablePostsInGroupNoPagination(groupId, currentUserId).stream().map(post -> {
+    @Cacheable(value = "posts",
+            key = "'group-' + #groupId + '-user-' + #currentUserId + '-isExpired-' + #isExpired",
+            unless = "#result == null")
+    public List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId, Boolean isExpired) {
+        if (Objects.isNull(isExpired)) {
+            return postRepository.getViewablePostsInGroupNoPagination(groupId, currentUserId).stream().map(post -> {
+                PostDto result = postMapper.toDto(post);
+                result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
+                return result;
+            }).toList();
+        }
+        return postRepository.getViewablePostsInGroupNoPaginationWithExpired(groupId, currentUserId, isExpired).stream().map(post -> {
             PostDto result = postMapper.toDto(post);
             result.setFirstComment(commentMapper.toDto(commentRepository.getFirstComment(post.getId())));
             return result;
         }).toList();
-        return dtoList;
+    }
+
+    @Override
+    public List<PostDto> getUserPosts() {
+        var currentUserId = userService.getCurrentLoggedInUser().getId();
+        return postRepository.findPostsByMember_User_Id(currentUserId, Sort.by("createdAt").descending())
+                .stream()
+                .map(postMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -182,7 +204,9 @@ public class PostServiceImpl implements PostService {
         RelationshipHandler relationshipHandler = new RelationshipHandler(userService);
         GroupPermissionHandler groupPermissionHandler = new GroupPermissionHandler(memberRepository);
         PostVisibilityHandler postVisibilityHandler = new PostVisibilityHandler(postVisibilityRepository);
+        PostValidityHandler postValidityHandler = new PostValidityHandler(postRepository);
 
+        postValidityHandler.setNext(relationshipHandler);
         relationshipHandler.setNext(groupPermissionHandler);
         groupPermissionHandler.setNext(postVisibilityHandler);
 
