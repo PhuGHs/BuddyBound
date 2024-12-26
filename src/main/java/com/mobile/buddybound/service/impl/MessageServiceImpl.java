@@ -47,7 +47,6 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     @Transactional
-    @Cacheable(value = "messages", key = "#dto.getGroupId()")
     public ResponseEntity<?> sendAMessage(MessagePostDto dto, List<MultipartFile> images) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
         Member member = memberRepository.getMemberByUser_IdAndGroup_Id(currentUserId, dto.getGroupId())
@@ -79,7 +78,6 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    @Cacheable(value = "messages", key = "#groupId")
     public ResponseEntity<?> getAllGroupMessages(Long groupId, Pageable pageable) {
         checkUserInvolved(groupId);
         var messageDtos = messageRepository.findByGroup_Id(groupId, pageable).stream().map(messageMapper::toDto);

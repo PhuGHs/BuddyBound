@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody @Valid RegisterDto dto) {
+    public ResponseEntity<?> changePassword(@RequestBody RegisterDto dto) {
         return authService.changePassword(dto);
     }
 }

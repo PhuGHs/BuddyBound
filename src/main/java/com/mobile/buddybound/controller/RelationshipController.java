@@ -70,10 +70,15 @@ public class RelationshipController {
     }
 
     @GetMapping("/get-all-restricted-user")
-    @PreAuthorize("hasAuthority('ADULTS')")
     @JsonView(Views.Read.class)
     public ResponseEntity<?> getAllRestrictedUser() {
         return this.relationshipService.getUserLimitedRelationshipList();
+    }
+
+    @GetMapping("/get-pending-relationship")
+    @JsonView(Views.Read.class)
+    public ResponseEntity<?> getPendingRelationships() {
+        return this.relationshipService.getPendingRelationship();
     }
 
     @PutMapping("/accept-invitation/{relationshipId}")

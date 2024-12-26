@@ -11,4 +11,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     boolean checkIfExist(Long currentUserId, Long receiverId);
 
     boolean existsBySenderIdOrReceiverId(Long senderId, Long receiverId);
+
+    @Query("SELECT COUNT(r) > 0 from Relationship r WHERE ((r.sender.id = :currentUserId and r.receiver.id = :receiverId) or (r.sender.id = :receiverId and r.receiver.id = :currentUserId)) AND r.isPending = true")
+    boolean checkIfRelationshipPending(Long currentUserId, Long receiverId);
 }

@@ -43,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final UserImageRepository userImageRepository;
     private final MailService mailService;
+    private final SettingRepository settingRepository;
     private final JwtTokenUtils jwtTokenUtils;
     private final static String maleAvatarUrl = "https://ik.imagekit.io/apwerlhez/5.png?updatedAt=1732544514448";
     private final static String femaleAvatarUrl = "https://ik.imagekit.io/apwerlhez/2.png?updatedAt=1732544514560";
@@ -63,6 +64,10 @@ public class AuthServiceImpl implements AuthService {
 
         Image image = registerDto.isGender() ? Image.builder().imageUrl(maleAvatarUrl).build() : Image.builder().imageUrl(femaleAvatarUrl).build();
 
+        if (userRepository.existsByPhoneNumber(registerDto.getPhoneNumber())) {
+            throw new BadRequestException("This phone number is already in use");
+        }
+
         User user = User.builder()
                 .fullName(registerDto.getFullName())
                 .birthday(registerDto.getBirthday())
@@ -72,6 +77,14 @@ public class AuthServiceImpl implements AuthService {
 
         boolean isChild = Period.between(registerDto.getBirthday(), LocalDate.now()).getYears() < 18;
         user = userRepository.save(user);
+
+        UserSettings userSettings = UserSettings.builder()
+                .user(user)
+                .locationHistoryEnabled(true)
+                .contactEnabled(false)
+                .locationEnabled(false)
+                .build();
+        settingRepository.save(userSettings);
 
         UserImage userImage = UserImage.builder()
                 .user(user)
@@ -157,7 +170,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public ResponseEntity<?> verify(String email, String code) {
-        if (accountRepository.existsByEmailAndVerificationCode(email, code)) {
+        if (!accountRepository.existsByEmailAndVerificationCode(email, code)) {
             throw new BadRequestException("Mismatch verification code");
         }
         return ResponseEntity.noContent().build();

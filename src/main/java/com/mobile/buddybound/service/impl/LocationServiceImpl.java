@@ -68,7 +68,17 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public ResponseEntity<?> loadMap(Long groupId) {
-        List<Location> locations = locationRepository.getUserLocationsWithinGroup(groupId);
+        var currentUser = userService.getCurrentLoggedInUser();
+        var blockedList = currentUser.getBlockedRelationships();
+        List<Location> locations = locationRepository.getUserLocationsWithinGroup(groupId)
+                .stream()
+                .map((location) -> {
+                    var isBlocked = blockedList.stream().anyMatch((bl) -> bl.getBlockedUser().getId().equals(location.getUser().getId()));
+                    if (isBlocked) {
+                        return null;
+                    }
+                    return location;
+                }).filter(Objects::nonNull).toList();
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get locations", locations.stream().map(locationMapper::toDto)));
     }
 

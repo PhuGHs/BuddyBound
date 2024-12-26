@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -71,13 +72,6 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "posts",
-            key = "'group-' + #dto.groupId + '-user-*'",
-            allEntries = false,
-            condition = "#result != null")
-    @CachePut(value = "posts",
-            key = "'group-' + #dto.groupId + '-user-' + #user.id + '-isExpired-false'",
-            condition = "#result != null")
     public PostDto createPost(User user, PostCreateDto dto, MultipartFile image) {
         var member = memberRepository.getMemberByUser_IdAndGroup_Id(user.getId(), dto.getGroupId())
                 .orElseThrow(() -> new NotFoundException("Member not found"));
@@ -107,8 +101,8 @@ public class PostServiceImpl implements PostService {
 
         Post finalPost = post;
         List<PostVisibility> viewers = newIds.stream()
-                .map(memberId -> {
-                    Member viewer = memberRepository.findById(memberId).
+                .map(userId -> {
+                    Member viewer = memberRepository.getMemberByUser_IdAndGroup_Id(userId, group.getId()).
                             orElseThrow(() -> new NotFoundException("Member not found"));
                     return PostVisibility.builder()
                             .post(finalPost)
@@ -167,9 +161,6 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Cacheable(value = "posts",
-            key = "'group-' + #groupId + '-user-' + #currentUserId + '-isExpired-' + #isExpired",
-            unless = "#result == null")
     public List<PostDto> getAllPostsWithoutPagination(Long currentUserId, Long groupId, Boolean isExpired) {
         if (Objects.isNull(isExpired)) {
             return postRepository.getViewablePostsInGroupNoPagination(groupId, currentUserId).stream().map(post -> {

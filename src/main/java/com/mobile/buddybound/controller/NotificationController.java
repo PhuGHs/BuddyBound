@@ -34,6 +34,7 @@ public class NotificationController {
     @PutMapping("/{notificationId}")
     public ResponseEntity<?> markAsRead(@PathVariable Long notificationId) {
         var currentUserId = userService.getCurrentLoggedInUser().getId();
+        notificationService.markAsRead(currentUserId, notificationId);
         return ResponseEntity.noContent().build();
     }
 

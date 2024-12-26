@@ -15,5 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Override
     boolean existsById(Long aLong);
 
+    boolean existsByPhoneNumber(String phoneNumber);
+
     List<User> findByFullNameContainingIgnoreCaseOrPhoneNumberContaining(String fullName, String phoneNumber);
 }

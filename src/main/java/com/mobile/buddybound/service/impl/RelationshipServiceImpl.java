@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -53,10 +54,10 @@ public class RelationshipServiceImpl implements RelationshipService {
     private final BlockedRelationshipRepository blockedRelationshipRepository;
     private final RelationshipStrategyContext relationshipStrategyContext;
     private final NotificationService notificationService;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
-    @CacheEvict(value = "relationships", allEntries = true)
     public Object addRelationship(RelationshipDto dto) {
         User sender = userService.getCurrentLoggedInUser();
         if (!userRepository.existsById(dto.getReceiverId())) {
@@ -91,7 +92,7 @@ public class RelationshipServiceImpl implements RelationshipService {
                 .senderId(sender.getId())
                 .recipientId(dto.getReceiverId())
                 .referenceId(savedOne.getId())
-                .requesterName(savedOne.getReceiver().getFullName())
+                .requesterName(savedOne.getSender().getFullName())
                 .build();
         notificationService.sendNotification(NotificationType.RELATIONSHIP_REQUEST, data);
 
@@ -99,7 +100,6 @@ public class RelationshipServiceImpl implements RelationshipService {
     }
 
     @Override
-    @Cacheable(value = "relationships", key = "#type + '-' + #currentUserId + '-' + #isPending + '-' + (#searchTerm != null && !#searchTerm.isBlank() ? #searchTerm : 'ALL')")
     public List<RelationshipDto> getAllRelationship(Long currentUserId, String searchTerm, boolean isPending, RelationshipType type) {
 
         // Normalize searchTerm to handle null or blank values
@@ -166,6 +166,30 @@ public class RelationshipServiceImpl implements RelationshipService {
         relationship.setPending(false);
         relationshipRepository.save(relationship);
         return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<?> getPendingRelationship() {
+        var currentUser = userService.getCurrentLoggedInUser();
+        var pendingRelationshipRequests = currentUser.getBackwardRelationships()
+                .stream()
+                .map(r -> {
+                    if (!r.isPending()) {
+                        return null;
+                    }
+                    RelationshipDto relationshipDto = null;
+                    if (r instanceof FriendRelationship fr) {
+                        relationshipDto = relationshipMapper.toFriendRelationshipDto(fr);
+                    } else if (r instanceof FamilyRelationship fr) {
+                        relationshipDto = relationshipMapper.toFamilyRelationshipDto(fr);
+                    }
+                    assert relationshipDto != null;
+                    relationshipDto.setReceiver(userMapper.toDto(r.getSender()));
+                    return relationshipDto;
+                })
+                .filter(Objects::nonNull)
+                .toList();
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "get pending relationships", pendingRelationshipRequests));
     }
 
     private boolean isFamily(RelationshipType type) {

@@ -21,4 +21,5 @@ public interface RelationshipService {
     FamilyRelationship getFamilyRelationshipBetweenTwoPeople(Long currentUserId, Long userId);
     FriendRelationship getFriendRelationshipBetweenTwoPeople(Long currentUserId, Long userId);
     ResponseEntity<?> acceptRelationship(Long relationshipId);
+    ResponseEntity<?> getPendingRelationship();
 }
