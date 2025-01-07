@@ -1,7 +1,6 @@
 package com.mobile.buddybound.service.impl;
 
 import com.mobile.buddybound.exception.NotFoundException;
-import com.mobile.buddybound.model.dto.RegisterDto;
 import com.mobile.buddybound.model.dto.SettingDto;
 import com.mobile.buddybound.model.dto.UpdateProfileDto;
 import com.mobile.buddybound.model.entity.Account;
@@ -16,13 +15,14 @@ import com.mobile.buddybound.repository.UserRepository;
 import com.mobile.buddybound.service.UserService;
 import com.mobile.buddybound.service.mapper.SettingMapper;
 import com.mobile.buddybound.service.mapper.UserMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import com.mobile.buddybound.pattern.singleton.UserSettingManager;
 
-import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,6 +35,13 @@ public class UserServiceImpl implements UserService  {
     private final SettingMapper settingMapper;
     private final SettingRepository settingRepository;
     private final RelationshipRepository relationshipRepository;
+    private final UserSettingManager userSettingManager;
+
+    @PostConstruct
+    public void init() {
+        UserSettingManager.getInstance(settingRepository);
+    }
+
     @Override
     public User findById(Long id) {
         return userRepository.findById(id)
@@ -70,30 +77,15 @@ public class UserServiceImpl implements UserService  {
     @Override
     public ResponseEntity<?> setUserSettings(SettingDto dto) {
         var currentUser = this.getCurrentLoggedInUser();
-        var settings = settingRepository.findByUser_Id(currentUser.getId())
-                .orElse(null);
-        if (Objects.isNull(settings)) {
-            UserSettings newSettings = UserSettings.builder()
-                    .user(currentUser)
-                    .contactEnabled(dto.isContactEnabled())
-                    .locationEnabled(dto.isLocationEnabled())
-                    .locationHistoryEnabled(dto.isLocationEnabled() && dto.isLocationHistoryEnabled())
-                    .build();
-            newSettings = settingRepository.save(newSettings);
-            return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "set user settings", settingMapper.toDto(newSettings)));
-        }
-
-        settings.setContactEnabled(dto.isContactEnabled());
-        settings.setLocationEnabled(dto.isLocationEnabled());
-        settings.setLocationHistoryEnabled(dto.isLocationEnabled() && dto.isLocationHistoryEnabled());
-        settings = settingRepository.save(settings);
+        dto.setUserId(currentUser.getId());
+        UserSettings settings = userSettingManager.updateSettings(dto);
         return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "set user settings", settingMapper.toDto(settings)));
     }
 
     @Override
     public ResponseEntity<?> getUserSettings() {
         var currentUser = this.getCurrentLoggedInUser();
-        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user settings", Objects.isNull(currentUser.getSettings()) ? "" : settingMapper.toDto(currentUser.getSettings())));
+        return ResponseEntity.ok(new ApiResponse(ApiResponseStatus.SUCCESS, "Get user settings", userSettingManager.getSettings(currentUser.getId())));
     }
 
     @Override

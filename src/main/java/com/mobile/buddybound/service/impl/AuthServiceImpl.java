@@ -9,6 +9,7 @@ import com.mobile.buddybound.model.entity.*;
 import com.mobile.buddybound.model.response.ApiResponse;
 import com.mobile.buddybound.model.response.ApiResponseStatus;
 import com.mobile.buddybound.model.response.AuthResponse;
+import com.mobile.buddybound.pattern.strategy.auth_strategy.AuthStrategy;
 import com.mobile.buddybound.repository.*;
 import com.mobile.buddybound.security.JwtTokenUtils;
 import com.mobile.buddybound.service.AuthService;
@@ -44,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserImageRepository userImageRepository;
     private final MailService mailService;
     private final SettingRepository settingRepository;
+    private final AuthStrategy authStrategy;
     private final JwtTokenUtils jwtTokenUtils;
     private final static String maleAvatarUrl = "https://ik.imagekit.io/apwerlhez/5.png?updatedAt=1732544514448";
     private final static String femaleAvatarUrl = "https://ik.imagekit.io/apwerlhez/2.png?updatedAt=1732544514560";
@@ -110,29 +112,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public ResponseEntity<AuthResponse> login(LoginDto loginDto) {
-//        authenticate
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        getAccount
-        Account account = accountRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new NotFoundException("Account is not found"));
-//        generateToken
-        String accessToken = jwtTokenUtils.generateToken(loginDto.getEmail());
-        String refreshToken = jwtTokenUtils.generateRefreshToken(loginDto.getEmail());
-
-        accountSessionRepository.updateSessionByAccountId(account.getId());
-
-        AccountSession accountSession = AccountSession.builder()
-                .account(account)
-                .createdAt(LocalDateTime.now())
-                .lastUsedAt(LocalDateTime.now())
-                .refreshToken(refreshToken)
-                .expiresAt(LocalDateTime.now().plusDays(30))
-                .isRevoked(false)
-                .build();
-
-        accountSessionRepository.save(accountSession);
-
-        return ResponseEntity.ok(new AuthResponse(accountMapper.toDto(account), accessToken, refreshToken));
+        return authStrategy.authenticate(loginDto);
     }
 
     @Override
